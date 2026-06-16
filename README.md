@@ -103,6 +103,41 @@ Landing page ini mengikuti PRD bagian 6 secara ketat:
 - Bentuk: blok/foto sudut tajam (editorial), tombol pill. Aksen: maroon saja.
 - Aksesibilitas: kontras teks >= 4.5:1, focus ring, `prefers-reduced-motion`, alt text, semantic HTML.
 
+## Lead capture & Admin
+
+- Tombol "Pesan" + floating WhatsApp membuka **form popup** (nama, HP, kota) -> `POST /api/lead`
+  -> simpan ke Postgres + redirect ke WhatsApp dengan pesan pre-fill (`LeadModal.astro`).
+- `/api/lead` menangkap IP (`X-Forwarded-For`), UTM/gclid, lalu menormalkan `source`
+  (cpc / organic / social / referral / direct). Ada honeypot anti-bot.
+- **Dashboard admin** `/admin` (login `/admin/login`):
+  - Auth cookie session (HMAC, httpOnly, SameSite=Lax, secure).
+  - Statistik: chat hari ini, 7 hari, 30 hari, total, dari iklan (CPC).
+  - Tabel leads + filter (cari nama/HP, kota, source, rentang tanggal) + pagination.
+  - Panel **deteksi fraud**: IP yang submit >= 3x dari trafik CPC.
+- Konfigurasi: salin `.env.example` -> `.env`. Generate `ADMIN_PASSWORD_HASH` &
+  `SESSION_SECRET` (perintah ada di dalam file).
+
+## Deploy & Update (VPS)
+
+Live: **https://berlin.folkastudio.com**
+(pm2 `berlin-home` port 3040 · nginx + Let's Encrypt · Postgres `berlin-postgres` port 5435).
+
+Update setelah ada perubahan (push dulu dari lokal):
+
+```bash
+ssh root@192.206.117.35 -p 2222
+cd /var/www/berlin-home
+git pull
+npm ci                          # hanya jika dependency berubah
+npm run build
+npm run db:push                 # hanya jika schema (src/lib/schema.ts) berubah
+pm2 restart berlin-home --update-env
+```
+
+Provisioning awal (sudah dilakukan): container `berlin-postgres`, tulis `.env`,
+`npm ci && build`, `db:push`, `pm2 start dist/server/entry.mjs --node-args=--env-file=.env`,
+nginx site, lalu `certbot --nginx -d berlin.folkastudio.com`.
+
 ## Regenerasi gambar (opsional)
 
 ```bash
