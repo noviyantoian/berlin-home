@@ -8,7 +8,7 @@ import node from '@astrojs/node';
 // Hybrid: marketing pages prerender (static), /api + /admin run on-demand (SSR)
 // via the standalone Node server (run under pm2 behind nginx).
 export default defineConfig({
-  site: 'https://berlin.folkastudio.com',
+  site: 'https://berlinhomespa.com',
   adapter: node({ mode: 'standalone' }),
   // Behind nginx the node server sees http://127.0.0.1, so Astro's built-in
   // origin check rejects real https form posts. Disable it and rely on the

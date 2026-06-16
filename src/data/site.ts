@@ -94,23 +94,40 @@ export const features = [
   { icon: "ph:seal-check", title: "Terapis Bersertifikat", desc: "Setiap terapis melalui seleksi ketat dan pelatihan profesional di bidang spa & refleksologi." },
   { icon: "ph:shield-check", title: "Higienis & Aman", desc: "Terapis dalam kondisi sehat dan mengikuti protokol kebersihan ketat sebelum serta setelah sesi." },
   { icon: "ph:users", title: "Bebas Pilih Terapis", desc: "Pilih terapis pria atau wanita sesuai preferensi Anda. Hubungi admin untuk info ketersediaan." },
-  { icon: "ph:moped", title: "Gratis Transportasi", desc: "Tanpa biaya tambahan untuk perjalanan terapis ke lokasi Anda di area DKI Jakarta & Bali." },
+  { icon: "ph:moped", title: "Gratis Transportasi", desc: "Tanpa biaya tambahan untuk perjalanan terapis ke lokasi Anda di seluruh area Bali." },
   { icon: "ph:clock", title: "Layanan 24 Jam", desc: "Tersedia setiap hari, pagi hingga dini hari, sesuaikan dengan jadwal Anda." },
-  { icon: "ph:map-pin", title: "Area Luas", desc: "Melayani seluruh wilayah DKI Jakarta dan Bali, ke rumah, hotel, atau apartemen." },
+  { icon: "ph:map-pin", title: "Menjangkau Seluruh Bali", desc: "Melayani seluruh wilayah Bali, langsung ke rumah, hotel, villa, atau apartemen Anda." },
 ];
 
 export type Testimonial = { name: string; role: string; quote: string };
 
 export const testimonials: Testimonial[] = [
-  { name: "Michael", role: "Apartemen, Jakarta", quote: "Terapisnya sangat profesional, badan terasa segar dan ringan setelah sesi. Recommended." },
-  { name: "Ko Johan", role: "Rumah, Jakarta", quote: "Tidak perlu keluar rumah, terapis datang tepat waktu dan tekniknya oke banget." },
-  { name: "Budi", role: "Hotel, Bali", quote: "Badan jadi lebih bugar, pasti pesan lagi. Pelayanannya memuaskan." },
-  { name: "Julia", role: "Apartemen, Jakarta", quote: "Profesional dan nyaman, cocok buat yang sibuk dan tidak ada waktu ke spa." },
-  { name: "Shinta", role: "Rumah, Bali", quote: "Waktu fleksibel, teknik yang tepat. Sangat membantu pemulihan setelah aktivitas padat." },
-  { name: "Dini", role: "Rumah, Jakarta", quote: "Me-time terbaik. Setelah pijat, saya merasa lebih bertenaga dan siap beraktivitas lagi." },
+  { name: "Michael", role: "Villa, Seminyak", quote: "Terapisnya sangat profesional, badan terasa segar dan ringan setelah sesi. Recommended." },
+  { name: "Ko Johan", role: "Rumah, Denpasar", quote: "Tidak perlu keluar rumah, terapis datang tepat waktu dan tekniknya oke banget." },
+  { name: "Budi", role: "Hotel, Nusa Dua", quote: "Badan jadi lebih bugar, pasti pesan lagi. Pelayanannya memuaskan." },
+  { name: "Julia", role: "Apartemen, Canggu", quote: "Profesional dan nyaman, cocok buat yang sibuk dan tidak ada waktu ke spa." },
+  { name: "Shinta", role: "Rumah, Sanur", quote: "Waktu fleksibel, teknik yang tepat. Sangat membantu pemulihan setelah aktivitas padat." },
+  { name: "Dini", role: "Villa, Ubud", quote: "Me-time terbaik. Setelah pijat, saya merasa lebih bertenaga dan siap beraktivitas lagi." },
 ];
 
 export const regions = [
-  { name: "DKI Jakarta", detail: "Selatan · Pusat · Barat · Utara · Timur" },
-  { name: "Bali", detail: "Seminyak · Kuta · Denpasar · Ubud" },
+  { name: "Bali Selatan", detail: "Kuta · Legian · Seminyak · Canggu · Jimbaran · Nusa Dua · Uluwatu" },
+  { name: "Denpasar & Sanur", detail: "Denpasar · Sanur · Kerobokan" },
+  { name: "Ubud & sekitarnya", detail: "Ubud · Gianyar · sekitarnya" },
+];
+
+// Pilihan wilayah Bali untuk form pemesanan (disimpan di kolom `city`).
+export const baliAreas = [
+  "Kuta",
+  "Legian",
+  "Seminyak",
+  "Canggu",
+  "Kerobokan",
+  "Denpasar",
+  "Sanur",
+  "Jimbaran",
+  "Nusa Dua",
+  "Uluwatu",
+  "Ubud",
+  "Area lain di Bali",
 ];

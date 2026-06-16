@@ -13,23 +13,20 @@ import Footer from "../components/Footer.astro";
 import WaFab from "../components/WaFab.astro";
 import LeadModal from "../components/LeadModal.astro";
 
-const title = "Berlin Home Spa — Pijat & Refleksi Panggilan Profesional di Jakarta & Bali";
+const title = "Berlin Home Spa · Pijat & Refleksi Panggilan Profesional di Bali";
 const description =
-  "Terapis bersertifikat datang ke rumah, hotel, atau apartemen Anda. Layanan pijat relaksasi & refleksi profesional, higienis, 24 jam di DKI Jakarta & Bali. Gratis ongkir — pesan via WhatsApp.";
+  "Terapis bersertifikat datang ke rumah, hotel, villa, atau apartemen Anda. Layanan pijat relaksasi & refleksi profesional, higienis, 24 jam di seluruh Bali. Gratis ongkir, pesan via WhatsApp.";
 
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
   name: "Berlin Home Spa & Reflexology",
-  description: "Layanan pijat relaksasi dan refleksi panggilan oleh terapis bersertifikat di DKI Jakarta & Bali.",
+  description: "Layanan pijat relaksasi dan refleksi panggilan oleh terapis bersertifikat di seluruh Bali.",
   image: "https://berlinhomespa.com/assets/images/og.jpg",
   url: "https://berlinhomespa.com/",
   telephone: "+6282333078188",
   priceRange: "$$",
-  areaServed: [
-    { "@type": "City", name: "Jakarta" },
-    { "@type": "AdministrativeArea", name: "Bali" },
-  ],
+  areaServed: { "@type": "AdministrativeArea", name: "Bali" },
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
     dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],

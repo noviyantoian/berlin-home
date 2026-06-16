@@ -56,7 +56,7 @@ export async function getStats(): Promise<Stats> {
   const rows = (await db.execute(sql`
     select
       count(*) as total,
-      count(*) filter (where (created_at at time zone 'Asia/Jakarta')::date = (now() at time zone 'Asia/Jakarta')::date) as today,
+      count(*) filter (where (created_at at time zone 'Asia/Makassar')::date = (now() at time zone 'Asia/Makassar')::date) as today,
       count(*) filter (where created_at >= now() - interval '7 days') as last7,
       count(*) filter (where created_at >= now() - interval '30 days') as last30,
       count(*) filter (where source = 'cpc') as cpc

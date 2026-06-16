@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
+import { baliAreas } from "../data/site";
 ---
 <div id="lead-modal" class="lead-modal" aria-hidden="true">
   <div class="lead-modal__backdrop" data-close></div>
@@ -23,11 +24,10 @@ import { Icon } from "astro-icon/components";
         <input class="lead-input" id="lead-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="40" placeholder="0812xxxxxxxx" />
       </div>
       <div class="grid gap-1.5">
-        <label class="text-sm font-medium" for="lead-city">Kota</label>
+        <label class="text-sm font-medium" for="lead-city">Wilayah di Bali</label>
         <select class="lead-input" id="lead-city" name="city" required>
-          <option value="" disabled selected>Pilih kota</option>
-          <option value="Jakarta">Jakarta</option>
-          <option value="Bali">Bali</option>
+          <option value="" disabled selected>Pilih wilayah</option>
+          {baliAreas.map((a) => <option value={a}>{a}</option>)}
         </select>
       </div>
 
