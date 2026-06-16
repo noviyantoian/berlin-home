@@ -1,0 +1,72 @@
+---
+import Cta from "./Cta.astro";
+import { navLinks, WA_GENERAL } from "../data/site";
+---
+<header class="site-header fixed inset-x-0 top-0 z-50 transition-all">
+  <nav class="nav wrap flex items-center justify-between" style="height:clamp(60px,4vw,74px)" aria-label="Navigasi utama">
+    <a class="font-display text-[1.35rem] font-medium tracking-tight text-ink" href="#top" aria-label="Berlin Home Spa, beranda">
+      Berlin<span class="text-maroon">.</span>
+      <span class="hidden sm:inline">Home Spa</span>
+    </a>
+
+    <div class="hidden items-center gap-9 min-[880px]:flex">
+      {navLinks.map((l) => (
+        <a class="nav-a text-[0.95rem] font-medium text-ink-soft" href={l.href}>{l.label}</a>
+      ))}
+    </div>
+
+    <Cta href={WA_GENERAL} label="Pesan via WhatsApp" location="header" order class="hidden min-[880px]:inline-flex" />
+
+    <button class="nav__toggle relative z-[2] grid h-11 w-11 place-items-center min-[880px]:hidden" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="mobile-panel">
+      <span></span>
+    </button>
+
+    <div class="nav__panel" id="mobile-panel">
+      <div class="flex flex-col gap-1">
+        {navLinks.map((l) => (
+          <a class="font-display text-[2rem] font-medium tracking-tight text-ink" href={l.href}>{l.label}</a>
+        ))}
+      </div>
+      <Cta href={WA_GENERAL} label="Pesan via WhatsApp" location="mobile-menu" order class="mt-8 w-full" />
+    </div>
+  </nav>
+</header>
+
+<style>
+  .site-header::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: rgba(250, 249, 247, 0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent; opacity: 0; transition: opacity .3s, border-color .3s;
+  }
+  .site-header.is-scrolled::before { opacity: 1; border-bottom-color: var(--color-line); }
+
+  .nav-a { position: relative; transition: color .25s; }
+  .nav-a::after { content: ""; position: absolute; left: 0; bottom: -4px; height: 1.5px; width: 100%; background: var(--color-maroon); transform: scaleX(0); transform-origin: left; transition: transform .28s var(--ease); }
+  .nav-a:hover { color: var(--color-maroon); }
+  .nav-a:hover::after { transform: scaleX(1); }
+
+  /* Hamburger */
+  .nav__toggle span, .nav__toggle span::before, .nav__toggle span::after {
+    content: ""; display: block; width: 24px; height: 2px; background: var(--color-ink); border-radius: 2px; transition: transform .3s var(--ease), opacity .3s;
+  }
+  .nav__toggle span::before { transform: translateY(-7px); }
+  .nav__toggle span::after { transform: translateY(5px); }
+  .nav.is-open .nav__toggle span { background: transparent; }
+  .nav.is-open .nav__toggle span::before { transform: rotate(45deg); }
+  .nav.is-open .nav__toggle span::after { transform: rotate(-45deg); }
+
+  /* Full-screen mobile panel */
+  .nav__panel {
+    position: fixed; inset: 0; z-index: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 2rem clamp(1.5rem, 5vw, 3rem);
+    background: var(--color-paper);
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity .35s var(--ease), transform .35s var(--ease), visibility .35s;
+  }
+  @media (min-width: 880px) { .nav__panel { display: none; } }
+  .nav.is-open .nav__panel { opacity: 1; visibility: visible; transform: none; }
+  .nav__panel a.font-display { padding: 0.4rem 0; transition: color .2s; }
+  .nav__panel a.font-display:hover { color: var(--color-maroon); }
+</style>

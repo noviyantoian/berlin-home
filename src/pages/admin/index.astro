@@ -1,0 +1,165 @@
+---
+import Base from "../../layouts/Base.astro";
+import { Icon } from "astro-icon/components";
+import { getStats, listLeads, getFraudIps, type Stats, type FraudRow } from "../../lib/leads";
+
+export const prerender = false;
+
+const sp = Astro.url.searchParams;
+const f = {
+  from: sp.get("from") || undefined,
+  to: sp.get("to") || undefined,
+  city: sp.get("city") || undefined,
+  source: sp.get("source") || undefined,
+  q: sp.get("q") || undefined,
+  page: Number(sp.get("page") || 1),
+  perPage: Number(sp.get("perPage") || 20),
+};
+
+let stats: Stats | null = null;
+let fraud: FraudRow[] = [];
+let list: Awaited<ReturnType<typeof listLeads>> | null = null;
+let dbError = "";
+try {
+  [stats, fraud, list] = await Promise.all([getStats(), getFraudIps(3), listLeads(f)]);
+} catch (e) {
+  dbError = (e as Error).message;
+}
+
+const fmt = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+});
+const sourceClass: Record<string, string> = {
+  cpc: "bg-blush text-maroon-ink", organic: "bg-emerald-50 text-emerald-800",
+  social: "bg-indigo-50 text-indigo-800", referral: "bg-amber-50 text-amber-800", direct: "bg-paper-2 text-muted",
+};
+const pageHref = (p: number) => {
+  const u = new URLSearchParams(sp);
+  u.set("page", String(p));
+  return `/admin?${u.toString()}`;
+};
+const sources = ["", "cpc", "organic", "social", "referral", "direct"];
+---
+<Base title="Dashboard — Berlin Home Spa" description="Admin">
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <main class="min-h-[100dvh] bg-paper-2">
+    <div class="wrap py-8">
+      <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5">
+        <div>
+          <a class="font-display text-xl font-medium tracking-tight text-ink" href="/">Berlin<span class="text-maroon">.</span> Home Spa</a>
+          <p class="text-sm text-faint">Dashboard leads · {Astro.locals.admin}</p>
+        </div>
+        <form method="POST" action="/api/admin/logout">
+          <button class="tag cursor-pointer hover:border-maroon hover:text-maroon" type="submit"><Icon name="ph:sign-out" /> Keluar</button>
+        </form>
+      </header>
+
+      {dbError && (
+        <p class="mt-6 border border-maroon/30 bg-blush px-4 py-3 text-sm text-maroon-ink">
+          Database belum tersambung: {dbError}. Cek <code>DATABASE_URL</code> &amp; jalankan <code>npm run db:push</code>.
+        </p>
+      )}
+
+      {stats && (
+        <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {[
+            { label: "Chat hari ini", value: stats.today },
+            { label: "7 hari terakhir", value: stats.last7 },
+            { label: "30 hari terakhir", value: stats.last30 },
+            { label: "Total leads", value: stats.total },
+            { label: "Dari iklan (CPC)", value: stats.cpc },
+          ].map((s) => (
+            <div class="border border-line bg-paper p-4">
+              <div class="text-sm text-muted">{s.label}</div>
+              <div class="mt-1 font-display text-3xl text-ink">{s.value}</div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {fraud.length > 0 && (
+        <section class="mt-6 border border-maroon/40 bg-blush/60 p-5">
+          <h2 class="flex items-center gap-2 font-display text-xl text-maroon-ink"><Icon name="ph:warning" /> Dugaan fraud IP (CPC berulang)</h2>
+          <p class="mt-1 text-sm text-muted">IP yang submit minimal 3 kali dari trafik iklan (CPC). Pertimbangkan exclude di Google Ads.</p>
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full min-w-[36rem] border-collapse text-sm">
+              <thead><tr class="border-b border-line text-left text-faint">
+                <th class="py-2 pr-4 font-medium">IP</th><th class="py-2 pr-4 font-medium">CPC</th>
+                <th class="py-2 pr-4 font-medium">Total</th><th class="py-2 pr-4 font-medium">24 jam</th>
+                <th class="py-2 font-medium">Terakhir</th>
+              </tr></thead>
+              <tbody>
+                {fraud.map((r) => (
+                  <tr class="border-b border-line/60">
+                    <td class="py-2 pr-4 font-mono">{r.ip}</td>
+                    <td class="py-2 pr-4 font-semibold text-maroon">{r.cpc}</td>
+                    <td class="py-2 pr-4">{r.total}</td>
+                    <td class="py-2 pr-4">{r.last24h}</td>
+                    <td class="py-2">{fmt.format(new Date(r.lastSeen))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <section class="mt-6 border border-line bg-paper">
+        <form method="GET" action="/admin" class="flex flex-wrap items-end gap-3 border-b border-line p-4">
+          <div class="grid gap-1"><label class="text-xs text-faint" for="q">Cari nama/HP</label><input class="adm-in" id="q" name="q" value={f.q} placeholder="nama / nomor" /></div>
+          <div class="grid gap-1"><label class="text-xs text-faint" for="city">Kota</label><input class="adm-in" id="city" name="city" value={f.city} placeholder="kota" /></div>
+          <div class="grid gap-1"><label class="text-xs text-faint" for="source">Source</label>
+            <select class="adm-in" id="source" name="source">
+              {sources.map((s) => <option value={s} selected={f.source === s}>{s === "" ? "Semua" : s}</option>)}
+            </select>
+          </div>
+          <div class="grid gap-1"><label class="text-xs text-faint" for="from">Dari</label><input class="adm-in" id="from" name="from" type="date" value={f.from} /></div>
+          <div class="grid gap-1"><label class="text-xs text-faint" for="to">Sampai</label><input class="adm-in" id="to" name="to" type="date" value={f.to} /></div>
+          <button class="btn btn--primary" type="submit">Filter</button>
+          <a class="btn btn--ghost" href="/admin">Reset</a>
+        </form>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[44rem] border-collapse text-sm">
+            <thead><tr class="border-b border-line text-left text-faint">
+              <th class="p-4 font-medium">Waktu</th><th class="p-4 font-medium">Nama</th>
+              <th class="p-4 font-medium">Nomor HP</th><th class="p-4 font-medium">Kota</th>
+              <th class="p-4 font-medium">Source</th><th class="p-4 font-medium">IP</th>
+            </tr></thead>
+            <tbody>
+              {list && list.rows.length === 0 && (
+                <tr><td class="p-6 text-center text-faint" colspan="6">Belum ada lead.</td></tr>
+              )}
+              {list && list.rows.map((l) => (
+                <tr class="border-b border-line/60 hover:bg-paper-2">
+                  <td class="whitespace-nowrap p-4 text-muted">{fmt.format(new Date(l.createdAt))}</td>
+                  <td class="p-4 font-medium">{l.name}</td>
+                  <td class="whitespace-nowrap p-4"><a class="ulink" href={`https://wa.me/${(l.phone || "").replace(/\D/g, "").replace(/^0/, "62")}`} target="_blank" rel="noopener">{l.phone}</a></td>
+                  <td class="p-4">{l.city}</td>
+                  <td class="p-4"><span class={`tag ${sourceClass[l.source] || "bg-paper-2 text-muted"}`}>{l.source}</span></td>
+                  <td class="whitespace-nowrap p-4 font-mono text-xs text-muted">{l.ip}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {list && (
+          <div class="flex items-center justify-between gap-3 border-t border-line p-4 text-sm">
+            <span class="text-muted">{list.total} lead · halaman {list.page} dari {list.pages}</span>
+            <div class="flex gap-2">
+              <a class={`btn btn--ghost ${list.page <= 1 ? "pointer-events-none opacity-40" : ""}`} href={pageHref(list.page - 1)}>Sebelumnya</a>
+              <a class={`btn btn--ghost ${list.page >= list.pages ? "pointer-events-none opacity-40" : ""}`} href={pageHref(list.page + 1)}>Berikutnya</a>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .adm-in { padding: 0.5rem 0.7rem; font: inherit; font-size: 0.9rem; background: #fff; border: 1.5px solid var(--color-line); border-radius: 9px; }
+  .adm-in:focus { outline: none; border-color: var(--color-maroon); }
+  table .btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+</style>

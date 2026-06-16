@@ -1,0 +1,24 @@
+---
+import { Icon } from "astro-icon/components";
+const phrases = [
+  "Gratis ongkir",
+  "Terapis bersertifikat",
+  "Layanan 24 jam",
+  "Tanpa biaya transport",
+  "Higienis & profesional",
+  "Beroperasi sejak 2024",
+  "Jakarta & Bali",
+];
+// duplicate for a seamless loop
+const loop = [...phrases, ...phrases];
+---
+<section class="marquee overflow-hidden bg-maroon py-4 text-paper" aria-label="Sorotan layanan">
+  <div class="marquee__track flex w-max items-center">
+    {loop.map((p, i) => (
+      <div class="flex items-center" aria-hidden={i >= phrases.length ? "true" : undefined}>
+        <span class="px-6 font-display text-[1.4rem] italic tracking-tight whitespace-nowrap">{p}</span>
+        <Icon name="ph:flower-lotus" class="text-[1rem] opacity-60" />
+      </div>
+    ))}
+  </div>
+</section>

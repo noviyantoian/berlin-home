@@ -1,0 +1,63 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import TrustMarquee from "../components/TrustMarquee.astro";
+import Services from "../components/Services.astro";
+import HowItWorks from "../components/HowItWorks.astro";
+import Features from "../components/Features.astro";
+import Testimonials from "../components/Testimonials.astro";
+import Area from "../components/Area.astro";
+import FinalCta from "../components/FinalCta.astro";
+import Footer from "../components/Footer.astro";
+import WaFab from "../components/WaFab.astro";
+import LeadModal from "../components/LeadModal.astro";
+
+const title = "Berlin Home Spa — Pijat & Refleksi Panggilan Profesional di Jakarta & Bali";
+const description =
+  "Terapis bersertifikat datang ke rumah, hotel, atau apartemen Anda. Layanan pijat relaksasi & refleksi profesional, higienis, 24 jam di DKI Jakarta & Bali. Gratis ongkir — pesan via WhatsApp.";
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "HealthAndBeautyBusiness",
+  name: "Berlin Home Spa & Reflexology",
+  description: "Layanan pijat relaksasi dan refleksi panggilan oleh terapis bersertifikat di DKI Jakarta & Bali.",
+  image: "https://berlinhomespa.com/assets/images/og.jpg",
+  url: "https://berlinhomespa.com/",
+  telephone: "+6282333078188",
+  priceRange: "$$",
+  areaServed: [
+    { "@type": "City", name: "Jakarta" },
+    { "@type": "AdministrativeArea", name: "Bali" },
+  ],
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    opens: "00:00",
+    closes: "23:59",
+  },
+  makesOffer: [
+    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Pijat Tradisional Full Body" } },
+    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Vitalitas" } },
+    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Lulur Scrub" } },
+    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Refleksi & Full Body" } },
+  ],
+});
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <link slot="head" rel="preload" as="image" href="/assets/images/hero-portrait.webp" fetchpriority="high" />
+  <Header />
+  <main id="top">
+    <Hero />
+    <TrustMarquee />
+    <Services />
+    <HowItWorks />
+    <Features />
+    <Testimonials />
+    <Area />
+    <FinalCta />
+  </main>
+  <Footer />
+  <WaFab />
+  <LeadModal />
+</Base>

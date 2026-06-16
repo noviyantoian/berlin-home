@@ -1,0 +1,75 @@
+---
+import "@fontsource-variable/newsreader/opsz.css";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource-variable/dm-sans/wght.css";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  jsonLd?: string;
+}
+const { title, description, ogImage = "/assets/images/og.jpg", jsonLd } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageAbs = new URL(ogImage, Astro.site);
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#be3144" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageAbs} />
+    <meta property="og:locale" content="id_ID" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <slot name="head" />
+
+    {/* Analytics: paste your real GTM ID, then uncomment. Event "whatsapp_click" is pushed by the script below.
+    <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i;
+    f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    */}
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
+  </head>
+  <body>
+    <slot />
+
+    <script>
+      const header = document.querySelector(".site-header");
+      const onScroll = () => header?.classList.toggle("is-scrolled", window.scrollY > 8);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+
+      const nav = document.querySelector(".nav");
+      const toggle = document.querySelector(".nav__toggle");
+      if (nav && toggle) {
+        const setOpen = (open: boolean) => {
+          nav.classList.toggle("is-open", open);
+          toggle.setAttribute("aria-expanded", String(open));
+          document.body.style.overflow = open ? "hidden" : "";
+        };
+        toggle.addEventListener("click", () => setOpen(!nav.classList.contains("is-open")));
+        nav.querySelectorAll(".nav__panel a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+      }
+
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      document.querySelectorAll('a[href*="wa.me"], a[href*="api.whatsapp.com"]').forEach((link) => {
+        link.addEventListener("click", () => {
+          (window as any).dataLayer.push({ event: "whatsapp_click", cta_location: link.getAttribute("data-cta") || "unknown" });
+        });
+      });
+    </script>
+  </body>
+</html>

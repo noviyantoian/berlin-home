@@ -1,0 +1,121 @@
+---
+import { Icon } from "astro-icon/components";
+---
+<div id="lead-modal" class="lead-modal" aria-hidden="true">
+  <div class="lead-modal__backdrop" data-close></div>
+  <div class="lead-modal__card" role="dialog" aria-modal="true" aria-labelledby="lead-modal-title">
+    <button class="lead-modal__x" type="button" aria-label="Tutup" data-close>
+      <Icon name="ph:x" />
+    </button>
+
+    <p class="kicker">Pesan via WhatsApp</p>
+    <h2 id="lead-modal-title" class="mt-3 font-display text-[1.9rem] leading-tight">Isi data, kami sambungkan ke <em>terapis.</em></h2>
+    <p class="mt-2 text-sm text-muted">Lengkapi 3 hal di bawah. Anda akan diarahkan ke WhatsApp dengan pesan yang sudah terisi.</p>
+
+    <form id="lead-form" class="mt-6 grid gap-4" novalidate>
+      <div class="grid gap-1.5">
+        <label class="text-sm font-medium" for="lead-name">Nama</label>
+        <input class="lead-input" id="lead-name" name="name" type="text" autocomplete="name" required maxlength="120" placeholder="Nama Anda" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-sm font-medium" for="lead-phone">Nomor HP / WhatsApp</label>
+        <input class="lead-input" id="lead-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="40" placeholder="0812xxxxxxxx" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-sm font-medium" for="lead-city">Kota</label>
+        <input class="lead-input" id="lead-city" name="city" type="text" autocomplete="address-level2" required maxlength="120" placeholder="Jakarta / Bali" />
+      </div>
+
+      <!-- honeypot: hidden from humans, bots fill it -->
+      <div class="hp" aria-hidden="true">
+        <label for="lead-website">Website</label>
+        <input id="lead-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <p class="hidden text-sm text-maroon" data-error role="alert"></p>
+
+      <button class="btn btn--primary btn--lg mt-1 w-full" type="submit">
+        <Icon name="ph:whatsapp-logo-fill" /> Lanjut ke WhatsApp
+      </button>
+      <p class="text-center text-xs text-faint">Gratis ongkir · Data hanya dipakai untuk menghubungi Anda.</p>
+    </form>
+  </div>
+</div>
+
+<style>
+  .lead-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity .25s var(--ease), visibility .25s; }
+  .lead-modal.open { opacity: 1; visibility: visible; }
+  .lead-modal__backdrop { position: absolute; inset: 0; background: rgba(26, 19, 18, 0.55); backdrop-filter: blur(3px); }
+  .lead-modal__card {
+    position: relative; width: 100%; max-width: 27rem; background: var(--color-paper);
+    border: 1px solid var(--color-line); padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+    box-shadow: var(--shadow-lift); transform: translateY(12px) scale(0.98); transition: transform .3s var(--ease);
+    max-height: calc(100dvh - 2rem); overflow-y: auto;
+  }
+  .lead-modal.open .lead-modal__card { transform: none; }
+  .lead-modal__x { position: absolute; top: 0.9rem; right: 0.9rem; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 999px; color: var(--color-muted); transition: background-color .2s, color .2s; }
+  .lead-modal__x:hover { background: var(--color-paper-2); color: var(--color-ink); }
+  .lead-modal__x [data-icon] { font-size: 1.4rem; }
+  .lead-input {
+    width: 100%; padding: 0.8rem 1rem; font: inherit; font-size: 1rem; color: var(--color-ink);
+    background: #fff; border: 1.5px solid var(--color-line); border-radius: 12px; transition: border-color .2s, box-shadow .2s;
+  }
+  .lead-input::placeholder { color: var(--color-faint); }
+  .lead-input:focus { outline: none; border-color: var(--color-maroon); box-shadow: 0 0 0 3px rgba(190, 49, 68, 0.15); }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  @media (prefers-reduced-motion: reduce) {
+    .lead-modal, .lead-modal__card { transition: none; }
+  }
+</style>
+
+<script>
+  const modal = document.getElementById("lead-modal");
+  const form = document.getElementById("lead-form") as HTMLFormElement | null;
+  if (modal && form) {
+    const firstInput = form.querySelector<HTMLInputElement>("input[name=name]");
+    const errEl = form.querySelector<HTMLElement>("[data-error]");
+    let lastFocused: HTMLElement | null = null;
+
+    const open = () => {
+      lastFocused = document.activeElement as HTMLElement;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => firstInput?.focus(), 60);
+    };
+    const close = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      lastFocused?.focus();
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-order]").forEach((el) =>
+      el.addEventListener("click", (e) => { e.preventDefault(); open(); })
+    );
+    modal.querySelectorAll<HTMLElement>("[data-close]").forEach((el) => el.addEventListener("click", close));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
+      if (errEl) { errEl.textContent = ""; errEl.classList.add("hidden"); }
+      const fd = new FormData(form);
+      const payload = {
+        name: fd.get("name"), phone: fd.get("phone"), city: fd.get("city"), website: fd.get("website"),
+        query: location.search.replace(/^\?/, ""), referrer: document.referrer, page: location.pathname,
+      };
+      const orig = btn?.textContent || "";
+      if (btn) { btn.disabled = true; btn.textContent = "Menghubungkan..."; }
+      try {
+        const res = await fetch("/api/lead", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Gagal mengirim. Silakan coba lagi.");
+        window.location.href = data.waUrl;
+      } catch (err) {
+        if (errEl) { errEl.textContent = (err as Error).message; errEl.classList.remove("hidden"); }
+        if (btn) { btn.disabled = false; btn.textContent = orig; }
+      }
+    });
+  }
+</script>

@@ -1,0 +1,25 @@
+---
+import { Icon } from "astro-icon/components";
+import { steps } from "../data/site";
+---
+<section id="cara-kerja" class="sect bg-paper-2" aria-labelledby="cara-title">
+  <div class="wrap">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <h2 id="cara-title" class="max-w-[18ch] text-h2">Mudah, cepat, <em>profesional.</em></h2>
+      <p class="lead max-w-[34ch]">Tiga langkah untuk menikmati pijat profesional di tempat Anda.</p>
+    </div>
+
+    <div class="mt-10 grid sm:mt-14 md:grid-cols-3">
+      {steps.map((s, i) => (
+        <div class="reveal reveal-up border-t border-line pt-8 first:border-t-0 first:pt-0 md:border-t-0 md:border-l md:pt-0 md:pl-9 first:md:border-l-0 first:md:pl-0 [&:not(:first-child)]:mt-8 md:[&:not(:first-child)]:mt-0">
+          <div class="flex items-baseline gap-4">
+            <span class="font-display text-5xl leading-none text-maroon md:text-6xl">0{i + 1}</span>
+            <Icon name={s.icon} class="text-2xl text-ink" />
+          </div>
+          <h3 class="mt-6 text-h3">{s.title}</h3>
+          <p class="mt-2 max-w-[34ch] text-muted">{s.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

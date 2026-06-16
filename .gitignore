@@ -1,0 +1,21 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs / env
+*.log
+.env
+.env.*
+!.env.example
+
+# os
+.DS_Store
+
+# legacy versions (archives) and image generation scratch
+_legacy-html/
+_legacy-astro-v1/
+_gen/*_raw.jpg
+_gen/*_resp.json

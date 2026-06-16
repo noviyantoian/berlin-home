@@ -1,0 +1,21 @@
+---
+import { Icon } from "astro-icon/components";
+import Cta from "./Cta.astro";
+import { WA_GENERAL, WA_DISPLAY } from "../data/site";
+---
+<section class="sect bg-maroon text-paper" aria-labelledby="cta-title">
+  <div class="wrap mx-auto max-w-[760px] text-center">
+    <h2 id="cta-title" class="reveal text-[clamp(2.4rem,1.4rem+4vw,4.5rem)] leading-[1.05] tracking-[-0.02em]">
+      Tubuh Anda layak <em>dirawat hari ini.</em>
+    </h2>
+    <p class="reveal mx-auto mt-6 max-w-[42ch] text-[1.15rem] leading-relaxed text-paper/85">
+      Pesan sekarang, biarkan terapis profesional kami yang datang kepada Anda.
+    </p>
+    <div class="reveal mt-9 flex justify-center">
+      <Cta href={WA_GENERAL} label="Chat WhatsApp sekarang" location="final" variant="on-maroon" order lg />
+    </div>
+    <p class="reveal mt-6 flex items-center justify-center gap-2 text-sm text-paper/75">
+      <Icon name="ph:moped" /> Gratis biaya transportasi · Respons cepat · {WA_DISPLAY}
+    </p>
+  </div>
+</section>

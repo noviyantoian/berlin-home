@@ -1,0 +1,21 @@
+---
+import { Icon } from "astro-icon/components";
+import { features } from "../data/site";
+---
+<section id="alasan" class="sect" aria-labelledby="alasan-title">
+  <div class="wrap">
+    <h2 id="alasan-title" class="max-w-[20ch] text-h2">Alasan klien <em>mempercayakan</em> tubuhnya pada kami.</h2>
+
+    <div class="mt-9 grid gap-x-14 sm:mt-14 sm:grid-cols-2">
+      {features.map((f) => (
+        <div class="reveal reveal-up flex gap-5 border-t border-line py-5 sm:py-7">
+          <Icon name={f.icon} class="mt-1 shrink-0 text-[1.7rem] text-maroon" />
+          <div>
+            <h3 class="text-[1.2rem] font-medium" style="font-family:var(--font-display)">{f.title}</h3>
+            <p class="mt-1.5 text-[0.95rem] text-muted">{f.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

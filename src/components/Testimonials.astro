@@ -1,0 +1,30 @@
+---
+import { Icon } from "astro-icon/components";
+import { testimonials } from "../data/site";
+---
+<section id="testimoni" class="sect bg-paper-2" aria-labelledby="testi-title">
+  <div class="wrap">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <h2 id="testi-title" class="max-w-[18ch] text-h2">Kata mereka yang <em>sudah mencoba.</em></h2>
+      <p class="lead">Relaksasi tanpa harus keluar rumah.</p>
+    </div>
+  </div>
+
+  <div class="scroll-row mt-9 flex snap-x snap-mandatory gap-5 overflow-x-auto px-[max(1.25rem,calc((100vw-1240px)/2+3rem))] pb-4 sm:mt-12">
+    {testimonials.map((t) => (
+      <figure class="flex w-[78vw] max-w-[24rem] shrink-0 snap-start flex-col border border-line bg-paper p-8">
+        <Icon name="ph:quotes-fill" class="text-3xl text-maroon" />
+        <blockquote class="mt-4 flex-1 font-display text-[1.35rem] leading-snug text-ink">{t.quote}</blockquote>
+        <figcaption class="mt-6 border-t border-line pt-4">
+          <span class="block font-semibold">{t.name}</span>
+          <span class="block text-sm text-faint">{t.role}</span>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+</section>
+
+<style>
+  .scroll-row { scrollbar-width: none; -ms-overflow-style: none; }
+  .scroll-row::-webkit-scrollbar { display: none; }
+</style>

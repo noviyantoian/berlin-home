@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Berlin Home Spa — editorial-wellness design system (Tailwind v4 @theme)
+   Brand maroon as the single accent over a clean paper/ink base.
+   ========================================================================== */
+@theme {
+  --color-maroon: #be3144;       /* brand, the one accent */
+  --color-maroon-deep: #97283a;
+  --color-maroon-ink: #5e1320;
+  --color-blush: #f4e6e8;        /* soft maroon tint surface */
+
+  --color-paper: #faf9f7;        /* primary surface (clean, not beige slop) */
+  --color-paper-2: #f1ede7;      /* secondary surface, used sparingly */
+  --color-ink: #1a1a1a;          /* primary text */
+  --color-ink-soft: #322f2c;
+  --color-muted: #57534e;        /* body-secondary (>= 4.5:1 on paper) */
+  --color-faint: #8c857d;        /* captions */
+  --color-line: #e6e1d9;         /* hairlines */
+  --color-line-soft: #efeae2;
+
+  --color-wa: #25d366;
+  --color-wa-deep: #128c7e;
+
+  --font-display: "Newsreader Variable", Georgia, "Times New Roman", serif;
+  --font-body: "DM Sans Variable", system-ui, -apple-system, sans-serif;
+
+  --text-display: clamp(2.5rem, 1.5rem + 3.4vw, 4.5rem);
+  --text-h2: clamp(2.05rem, 1.3rem + 2.9vw, 3.5rem);
+  --text-h3: clamp(1.35rem, 1.15rem + 0.8vw, 1.7rem);
+  --text-lead: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+
+  --shadow-soft: 0 2px 10px rgba(40, 28, 24, 0.05);
+  --shadow-lift: 0 24px 60px rgba(60, 30, 28, 0.16);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------- Base ----------------------------------- */
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.72;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    font-optical-sizing: auto;
+  }
+  h1 em, h2 em { font-style: italic; font-weight: 500; }
+  img { display: block; max-width: 100%; }
+  ::selection { background: var(--color-maroon); color: #fff; }
+  :focus-visible { outline: 2.5px solid var(--color-maroon); outline-offset: 3px; }
+  section[id], main[id] { scroll-margin-top: 92px; }
+  [data-icon] { display: inline-block; }
+}
+
+/* --------------------------- Components --------------------------------- */
+@layer components {
+  .wrap { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: clamp(1.25rem, 0.6rem + 3vw, 3rem); }
+  .sect { padding-block: clamp(4.5rem, 3.2rem + 6vw, 9rem); }
+  @media (max-width: 640px) { .sect { padding-block: 3rem; } }
+
+  /* Editorial eyebrow — used sparingly (<= 1 per 3 sections) */
+  .kicker {
+    display: inline-block; font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-maroon);
+  }
+
+  .lead { font-size: var(--text-lead); line-height: 1.5; color: var(--color-muted); }
+
+  .hr-ink { height: 1px; background: var(--color-line); border: 0; }
+
+  /* Buttons: pill (interactive), against the sharp-edged editorial blocks */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.55em;
+    padding: 0.95rem 1.6rem; border-radius: 999px;
+    font-family: var(--font-body); font-weight: 600; font-size: 1rem; line-height: 1;
+    cursor: pointer; transition: transform .25s var(--ease), background-color .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .btn:active { transform: translateY(1px) scale(0.99); }
+  .btn [data-icon] { font-size: 1.2em; }
+  .btn--lg { padding: 1.1rem 1.9rem; font-size: 1.05rem; }
+
+  .btn--primary { background: var(--color-maroon); color: #fff; }
+  .btn--primary:hover { background: var(--color-maroon-deep); transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+
+  .btn--ghost { background: transparent; color: var(--color-ink); border: 1.5px solid var(--color-ink); }
+  .btn--ghost:hover { background: var(--color-ink); color: var(--color-paper); transform: translateY(-2px); }
+
+  .btn--on-maroon { background: var(--color-paper); color: var(--color-maroon-ink); }
+  .btn--on-maroon:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 18px 40px rgba(0,0,0,0.25); }
+
+  /* Text link with animated underline */
+  .ulink { position: relative; font-weight: 600; color: var(--color-maroon); }
+  .ulink::after { content: ""; position: absolute; left: 0; bottom: -3px; width: 100%; height: 1.5px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
+  .ulink:hover::after { transform: scaleX(1); }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 0.4em;
+    padding: 0.4em 0.8em; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+    border: 1px solid var(--color-line); color: var(--color-muted); background: var(--color-paper);
+  }
+
+  /* Floating WhatsApp affordance */
+  .wa-fab {
+    position: fixed; z-index: 60;
+    right: clamp(1rem, 0.5rem + 2vw, 2rem);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(1rem, 0.5rem + 2vw, 1.8rem));
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.7rem 1.15rem 0.7rem 0.85rem; border-radius: 999px;
+    background: var(--color-wa); color: #fff; font-weight: 700; font-size: 0.9rem;
+    box-shadow: 0 14px 32px rgba(18, 140, 126, 0.42);
+    transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .wa-fab:hover { transform: translateY(-3px); box-shadow: 0 20px 44px rgba(18, 140, 126, 0.5); }
+  .wa-fab__ring { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,0.2); }
+  .wa-fab__ring [data-icon] { font-size: 22px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+}
+
+/* --------------------------- Motion (zero-JS, progressive) -------------- */
+/* Scroll-reveal via CSS scroll-driven animations; unsupported browsers
+   simply show content (no JS, no FOUC). Reduced-motion disables it. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      opacity: 0;
+      animation: reveal-in both linear;
+      animation-timeline: view();
+      animation-range: entry 5% cover 22%;
+    }
+    .reveal-up { animation-name: reveal-up; }
+  }
+}
+@keyframes reveal-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes reveal-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+
+/* Marquee (single use) */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee__track { animation: marquee 32s linear infinite; }
+}
+@keyframes marquee { to { transform: translateX(-50%); } }

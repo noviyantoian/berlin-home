@@ -1,0 +1,37 @@
+---
+import { Icon } from "astro-icon/components";
+import { regions } from "../data/site";
+---
+<section id="area" class="sect" aria-labelledby="area-title">
+  <div class="wrap grid items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20">
+    <div class="reveal reveal-up relative">
+      <img src="/assets/images/supplies.webp" width="1100" height="614" loading="lazy"
+        class="aspect-[4/5] w-full object-cover sm:aspect-[4/3] lg:aspect-[4/5]"
+        alt="Perlengkapan spa: handuk gulung, minyak pijat, lilin, dan batu pijat di meja kayu." />
+    </div>
+
+    <div class="reveal">
+      <h2 id="area-title" class="max-w-[16ch] text-h2">Kami datang ke seluruh <em>Jakarta &amp; Bali.</em></h2>
+      <p class="lead mt-5 max-w-[44ch]">Layanan panggilan untuk rumah, hotel, dan apartemen Anda, kapan pun dibutuhkan.</p>
+
+      <div class="mt-9">
+        {regions.map((r) => (
+          <div class="flex items-baseline justify-between gap-6 border-t border-line py-5">
+            <span class="font-display text-[1.5rem] text-ink">{r.name}</span>
+            <span class="text-right text-sm text-muted">{r.detail}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <div>
+          <span class="block font-display text-4xl leading-none text-maroon">24 Jam</span>
+          <span class="text-sm text-muted">Setiap hari · 00:00–23:59</span>
+        </div>
+        <p class="flex items-center gap-2 text-sm text-faint">
+          <Icon name="ph:info" /> Hanya layanan panggilan, tanpa lokasi fisik.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
