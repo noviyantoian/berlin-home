@@ -1,6 +1,6 @@
 # Berlin Home Spa — Landing Page
 
-Landing page satu halaman untuk layanan spa & refleksi panggilan di Jakarta & Bali.
+Landing page satu halaman untuk layanan spa & refleksi panggilan di Bali.
 Dibangun dengan **Astro 5 + Tailwind CSS v4** (output statis, zero-JS by default), dioptimalkan
 untuk konversi WhatsApp dan **lolos kebijakan Google Ads**.
 
@@ -119,7 +119,7 @@ Landing page ini mengikuti PRD bagian 6 secara ketat:
 
 ## Deploy & Update (VPS)
 
-Live: **https://berlin.folkastudio.com**
+Live: **https://berlinhomespa.com**
 (pm2 `berlin-home` port 3040 · nginx + Let's Encrypt · Postgres `berlin-postgres` port 5435).
 
 Update setelah ada perubahan (push dulu dari lokal):
@@ -136,7 +136,7 @@ pm2 restart berlin-home --update-env
 
 Provisioning awal (sudah dilakukan): container `berlin-postgres`, tulis `.env`,
 `npm ci && build`, `db:push`, `pm2 start dist/server/entry.mjs --node-args=--env-file=.env`,
-nginx site, lalu `certbot --nginx -d berlin.folkastudio.com`.
+nginx site, lalu `certbot --nginx -d berlinhomespa.com -d www.berlinhomespa.com`.
 
 ## Regenerasi gambar (opsional)
 
