@@ -20,6 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
   const name = String(body.name || "").trim().slice(0, 120);
   const phone = String(body.phone || "").trim().slice(0, 40);
   const city = String(body.city || "").trim().slice(0, 120);
+  const service = String(body.service || "").trim().slice(0, 120);
 
   if (!name || !phone || !city) {
     return json({ ok: false, error: "Mohon lengkapi nama, nomor HP, dan kota." }, 422);
@@ -28,7 +29,8 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, error: "Nomor HP tidak valid." }, 422);
   }
 
-  const text = `Halo Berlin Home Spa, saya ${name} (${phone}) dari ${city}. Saya ingin memesan layanan pijat. Mohon info ketersediaan terapis & jadwal. Terima kasih.`;
+  const intent = service ? `Saya tertarik dengan layanan ${service}.` : "Saya ingin memesan layanan pijat.";
+  const text = `Halo Berlin Home Spa, saya ${name} (${phone}) dari ${city}. ${intent} Mohon info ketersediaan terapis & jadwal. Terima kasih.`;
   const url = waUrl(text);
 
   // Honeypot: bots fill the hidden field. Let them "succeed" but never store.

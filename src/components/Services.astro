@@ -26,7 +26,7 @@ import { services } from "../data/site";
               <span class="tag">{s.duration}</span>
               {s.benefits.map((b) => <span class="tag">{b}</span>)}
             </div>
-            <a class="ulink mt-5 inline-flex items-center gap-1.5 text-[0.95rem]" href={s.wa} data-cta={`service-${s.id}`} target="_blank" rel="noopener">
+            <a class="ulink mt-5 inline-flex items-center gap-1.5 text-[0.95rem]" href={s.wa} data-cta={`service-${s.id}`} data-order data-service={s.title} target="_blank" rel="noopener">
               Tanya &amp; pesan <Icon name="ph:arrow-up-right" />
             </a>
           </div>

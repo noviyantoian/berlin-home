@@ -13,6 +13,7 @@ import { Icon } from "astro-icon/components";
     <p class="mt-2 text-sm text-muted">Lengkapi 3 hal di bawah. Anda akan diarahkan ke WhatsApp dengan pesan yang sudah terisi.</p>
 
     <form id="lead-form" class="mt-6 grid gap-4" novalidate>
+      <p class="hidden border border-line bg-paper-2 px-3 py-2 text-sm text-ink" data-service-label></p>
       <div class="grid gap-1.5">
         <label class="text-sm font-medium" for="lead-name">Nama</label>
         <input class="lead-input" id="lead-name" name="name" type="text" autocomplete="name" required maxlength="120" placeholder="Nama Anda" />
@@ -23,7 +24,11 @@ import { Icon } from "astro-icon/components";
       </div>
       <div class="grid gap-1.5">
         <label class="text-sm font-medium" for="lead-city">Kota</label>
-        <input class="lead-input" id="lead-city" name="city" type="text" autocomplete="address-level2" required maxlength="120" placeholder="Jakarta / Bali" />
+        <select class="lead-input" id="lead-city" name="city" required>
+          <option value="" disabled selected>Pilih kota</option>
+          <option value="Jakarta">Jakarta</option>
+          <option value="Bali">Bali</option>
+        </select>
       </div>
 
       <!-- honeypot: hidden from humans, bots fill it -->
@@ -74,10 +79,16 @@ import { Icon } from "astro-icon/components";
   if (modal && form) {
     const firstInput = form.querySelector<HTMLInputElement>("input[name=name]");
     const errEl = form.querySelector<HTMLElement>("[data-error]");
+    const serviceLabel = form.querySelector<HTMLElement>("[data-service-label]");
     let lastFocused: HTMLElement | null = null;
+    let currentService = "";
 
     const open = () => {
       lastFocused = document.activeElement as HTMLElement;
+      if (serviceLabel) {
+        if (currentService) { serviceLabel.textContent = "Layanan: " + currentService; serviceLabel.classList.remove("hidden"); }
+        else serviceLabel.classList.add("hidden");
+      }
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
@@ -91,7 +102,7 @@ import { Icon } from "astro-icon/components";
     };
 
     document.querySelectorAll<HTMLElement>("[data-order]").forEach((el) =>
-      el.addEventListener("click", (e) => { e.preventDefault(); open(); })
+      el.addEventListener("click", (e) => { e.preventDefault(); currentService = el.getAttribute("data-service") || ""; open(); })
     );
     modal.querySelectorAll<HTMLElement>("[data-close]").forEach((el) => el.addEventListener("click", close));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
@@ -103,7 +114,7 @@ import { Icon } from "astro-icon/components";
       const fd = new FormData(form);
       const payload = {
         name: fd.get("name"), phone: fd.get("phone"), city: fd.get("city"), website: fd.get("website"),
-        query: location.search.replace(/^\?/, ""), referrer: document.referrer, page: location.pathname,
+        service: currentService, query: location.search.replace(/^\?/, ""), referrer: document.referrer, page: location.pathname,
       };
       const orig = btn?.textContent || "";
       if (btn) { btn.disabled = true; btn.textContent = "Menghubungkan..."; }
