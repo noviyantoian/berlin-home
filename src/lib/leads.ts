@@ -108,10 +108,64 @@ export async function listLeads(f: LeadFilter) {
   return { rows, total, page, perPage, pages: Math.max(1, Math.ceil(total / perPage)) };
 }
 
-export type FraudRow = { ip: string; total: number; cpc: number; last24h: number; lastSeen: string };
+export type FraudLabel = "fraud" | "suspicious" | "low";
+export type FraudRow = {
+  ip: string;
+  total: number;
+  cpc: number;
+  last24h: number;
+  last1h: number;
+  distinctPhone: number;
+  firstSeen: string;
+  lastSeen: string;
+  score: number; // 0-100
+  label: FraudLabel;
+  reasons: string[];
+};
 
-/** IPs that submitted repeatedly from CPC traffic (likely click fraud / bots). */
-export async function getFraudIps(minCpc = 3): Promise<FraudRow[]> {
+type FraudSignals = { total: number; cpc: number; last24h: number; last1h: number; distinctPhone: number; spanSec: number };
+
+/**
+ * Explainable click-fraud score (0-100) for one IP's submission pattern.
+ * Weighted heuristics: CPC repetition is the core signal, plus velocity,
+ * duplicate phone, all-paid traffic, and tight bursts.
+ */
+function scoreIp(s: FraudSignals): { score: number; label: FraudLabel; reasons: string[] } {
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (s.cpc >= 2) {
+    score += Math.min(40, Math.round((Math.min(s.cpc, 8) / 8) * 40));
+    reasons.push(`${s.cpc}x dari iklan (CPC)`);
+  }
+  if (s.last1h >= 2) {
+    score += Math.min(30, s.last1h * 10);
+    reasons.push(`${s.last1h} submit dalam 1 jam`);
+  }
+  if (s.last24h >= 3) {
+    score += 15;
+    reasons.push(`${s.last24h} submit dalam 24 jam`);
+  }
+  if (s.total - s.distinctPhone >= 1) {
+    score += 15;
+    reasons.push("nomor HP berulang");
+  }
+  if (s.total >= 2 && s.cpc === s.total) {
+    score += 10;
+    reasons.push("100% trafik berbayar");
+  }
+  if (s.total >= 3 && s.spanSec > 0 && s.spanSec / (s.total - 1) < 120) {
+    score += 10;
+    reasons.push("jeda antar submit sangat rapat");
+  }
+
+  score = Math.min(100, score);
+  const label: FraudLabel = score >= 70 ? "fraud" : score >= 40 ? "suspicious" : "low";
+  return { score, label, reasons };
+}
+
+/** Repeat-visitor IPs (with >=1 CPC hit) scored for click-fraud likelihood, highest first. */
+export async function getFraudReport(minTotal = 2): Promise<FraudRow[]> {
   const db = getDb();
   const rows = (await db.execute(sql`
     select
@@ -119,19 +173,29 @@ export async function getFraudIps(minCpc = 3): Promise<FraudRow[]> {
       count(*) as total,
       count(*) filter (where source = 'cpc') as cpc,
       count(*) filter (where created_at >= now() - interval '24 hours') as last24h,
+      count(*) filter (where created_at >= now() - interval '1 hour') as last1h,
+      count(distinct phone) as distinct_phone,
+      extract(epoch from (max(created_at) - min(created_at))) as span_sec,
+      min(created_at) as first_seen,
       max(created_at) as last_seen
     from leads
     where ip is not null
     group by ip
-    having count(*) filter (where source = 'cpc') >= ${minCpc}
-    order by cpc desc, total desc
-    limit 50
+    having count(*) >= ${minTotal} and count(*) filter (where source = 'cpc') >= 1
+    order by count(*) filter (where source = 'cpc') desc, count(*) desc
+    limit 100
   `)) as unknown as Array<Record<string, string>>;
-  return rows.map((r) => ({
-    ip: r.ip,
-    total: Number(r.total),
-    cpc: Number(r.cpc),
-    last24h: Number(r.last24h),
-    lastSeen: String(r.last_seen),
-  }));
+
+  return rows
+    .map((r) => {
+      const total = Number(r.total);
+      const cpc = Number(r.cpc);
+      const last24h = Number(r.last24h);
+      const last1h = Number(r.last1h);
+      const distinctPhone = Number(r.distinct_phone);
+      const spanSec = Number(r.span_sec ?? 0);
+      const { score, label, reasons } = scoreIp({ total, cpc, last24h, last1h, distinctPhone, spanSec });
+      return { ip: r.ip, total, cpc, last24h, last1h, distinctPhone, firstSeen: String(r.first_seen), lastSeen: String(r.last_seen), score, label, reasons };
+    })
+    .sort((a, b) => b.score - a.score);
 }

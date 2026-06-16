@@ -1,7 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { Icon } from "astro-icon/components";
-import { getStats, listLeads, getFraudIps, type Stats, type FraudRow } from "../../lib/leads";
+import { getStats, listLeads, getFraudReport, type Stats, type FraudRow } from "../../lib/leads";
 
 export const prerender = false;
 
@@ -21,10 +21,19 @@ let fraud: FraudRow[] = [];
 let list: Awaited<ReturnType<typeof listLeads>> | null = null;
 let dbError = "";
 try {
-  [stats, fraud, list] = await Promise.all([getStats(), getFraudIps(3), listLeads(f)]);
+  [stats, fraud, list] = await Promise.all([getStats(), getFraudReport(2), listLeads(f)]);
 } catch (e) {
   dbError = (e as Error).message;
 }
+
+// IPs worth excluding in Google Ads (suspicious + fraud).
+const blocklist = fraud.filter((r) => r.label !== "low").map((r) => r.ip);
+const labelClass: Record<string, string> = {
+  fraud: "bg-maroon text-white",
+  suspicious: "bg-amber-100 text-amber-900",
+  low: "bg-paper-2 text-muted",
+};
+const labelText: Record<string, string> = { fraud: "Fraud", suspicious: "Mencurigakan", low: "Pantau" };
 
 const fmt = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Makassar", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
@@ -77,32 +86,68 @@ const sources = ["", "cpc", "organic", "social", "referral", "direct"];
         </section>
       )}
 
-      {fraud.length > 0 && (
-        <section class="mt-6 border border-maroon/40 bg-blush/60 p-5">
-          <h2 class="flex items-center gap-2 font-display text-xl text-maroon-ink"><Icon name="ph:warning" /> Dugaan fraud IP (CPC berulang)</h2>
-          <p class="mt-1 text-sm text-muted">IP yang submit minimal 3 kali dari trafik iklan (CPC). Pertimbangkan exclude di Google Ads.</p>
-          <div class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[36rem] border-collapse text-sm">
-              <thead><tr class="border-b border-line text-left text-faint">
-                <th class="py-2 pr-4 font-medium">IP</th><th class="py-2 pr-4 font-medium">CPC</th>
-                <th class="py-2 pr-4 font-medium">Total</th><th class="py-2 pr-4 font-medium">24 jam</th>
-                <th class="py-2 font-medium">Terakhir</th>
-              </tr></thead>
-              <tbody>
-                {fraud.map((r) => (
-                  <tr class="border-b border-line/60">
-                    <td class="py-2 pr-4 font-mono">{r.ip}</td>
-                    <td class="py-2 pr-4 font-semibold text-maroon">{r.cpc}</td>
-                    <td class="py-2 pr-4">{r.total}</td>
-                    <td class="py-2 pr-4">{r.last24h}</td>
-                    <td class="py-2">{fmt.format(new Date(r.lastSeen))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+      <section class="mt-6 border border-line bg-paper p-5">
+        <h2 class="flex items-center gap-2 font-display text-xl text-ink"><Icon name="ph:warning" /> Deteksi Fraud Klik (CPC)</h2>
+        <p class="mt-1 max-w-[70ch] text-sm text-muted">IP berulang dari trafik iklan diberi skor 0–100. Skor ≥ 70 = <strong class="text-maroon-ink">Fraud</strong>, 40–69 = Mencurigakan. Masukkan IP berisiko ke pengecualian IP Google Ads.</p>
+
+        {fraud.length === 0 ? (
+          <p class="mt-4 bg-paper-2 px-4 py-3 text-sm text-muted">Belum ada IP berulang dari CPC. Panel terisi otomatis saat pengunjung iklan (ada <code>gclid</code> / <code>utm_medium=cpc</code>) submit form ≥ 2×.</p>
+        ) : (
+          <>
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full min-w-[48rem] border-collapse text-sm">
+                <thead><tr class="border-b border-line text-left text-faint">
+                  <th class="py-2 pr-4 font-medium">Skor</th>
+                  <th class="py-2 pr-4 font-medium">IP</th>
+                  <th class="py-2 pr-4 font-medium">CPC</th>
+                  <th class="py-2 pr-4 font-medium">Total</th>
+                  <th class="py-2 pr-4 font-medium">1j / 24j</th>
+                  <th class="py-2 pr-4 font-medium">Alasan</th>
+                  <th class="py-2 font-medium">Terakhir</th>
+                </tr></thead>
+                <tbody>
+                  {fraud.map((r) => (
+                    <tr class="border-b border-line/60">
+                      <td class="py-2 pr-4"><span class={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${labelClass[r.label]}`}>{r.score} · {labelText[r.label]}</span></td>
+                      <td class="py-2 pr-4 font-mono">{r.ip}</td>
+                      <td class="py-2 pr-4 font-semibold text-maroon">{r.cpc}</td>
+                      <td class="py-2 pr-4">{r.total}</td>
+                      <td class="py-2 pr-4">{r.last1h} / {r.last24h}</td>
+                      <td class="py-2 pr-4 text-xs text-muted">{r.reasons.join(" · ")}</td>
+                      <td class="py-2 whitespace-nowrap text-muted">{fmt.format(new Date(r.lastSeen))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {blocklist.length > 0 && (
+              <div class="mt-5 border-t border-line pt-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h3 class="text-sm font-semibold">Blocklist Google Ads · {blocklist.length} IP</h3>
+                  <button id="copy-blocklist" type="button" class="tag cursor-pointer hover:border-maroon hover:text-maroon">Salin semua</button>
+                </div>
+                <pre id="blocklist-text" class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all bg-paper-2 p-3 font-mono text-xs">{blocklist.join("\n")}</pre>
+                <p class="mt-1 text-xs text-faint">Google Ads → Setelan kampanye → Pengecualian IP. Maks 500 IP per kampanye.</p>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      <script is:inline>
+        document.getElementById("copy-blocklist")?.addEventListener("click", async () => {
+          const el = document.getElementById("blocklist-text");
+          const btn = document.getElementById("copy-blocklist");
+          if (!el || !btn) return;
+          try {
+            await navigator.clipboard.writeText(el.textContent || "");
+            const o = btn.textContent;
+            btn.textContent = "Tersalin";
+            setTimeout(() => { btn.textContent = o; }, 1500);
+          } catch (e) { /* clipboard blocked */ }
+        });
+      </script>
 
       <section class="mt-6 border border-line bg-paper">
         <form method="GET" action="/admin" class="flex flex-wrap items-end gap-3 border-b border-line p-4">
