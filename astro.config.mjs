@@ -10,6 +10,10 @@ import node from '@astrojs/node';
 export default defineConfig({
   site: 'https://berlin.folkastudio.com',
   adapter: node({ mode: 'standalone' }),
+  // Behind nginx the node server sees http://127.0.0.1, so Astro's built-in
+  // origin check rejects real https form posts. Disable it and rely on the
+  // SameSite=Lax + httpOnly + secure session cookie for CSRF defense.
+  security: { checkOrigin: false },
   integrations: [icon()],
   vite: {
     plugins: [tailwindcss()],
