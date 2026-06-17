@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Berlin Home Spa — editorial-wellness design system (Tailwind v4 @theme)
-   Brand maroon as the single accent over a clean paper/ink base.
+   Berlin Home Spa — warm luxury-spa design system (Tailwind v4 @theme)
+   Brand bronze/gold accent over a warm cream/brown base (matches brand photos).
+   NOTE: token name "maroon" kept for stability; value is now bronze-brown.
    ========================================================================== */
 @theme {
-  --color-maroon: #be3144;       /* brand, the one accent */
-  --color-maroon-deep: #97283a;
-  --color-maroon-ink: #5e1320;
-  --color-blush: #f4e6e8;        /* soft maroon tint surface */
+  --color-maroon: #8a5e2c;       /* brand accent: warm bronze/gold-brown (buttons + accents) */
+  --color-maroon-deep: #6f4a22;  /* hover / pressed */
+  --color-maroon-ink: #4a3115;   /* deep brown accent on cream */
+  --color-blush: #efe3cf;        /* warm gold-cream tint surface */
 
-  --color-paper: #faf9f7;        /* primary surface (clean, not beige slop) */
-  --color-paper-2: #f1ede7;      /* secondary surface, used sparingly */
-  --color-ink: #1a1a1a;          /* primary text */
-  --color-ink-soft: #322f2c;
-  --color-muted: #57534e;        /* body-secondary (>= 4.5:1 on paper) */
-  --color-faint: #8c857d;        /* captions */
-  --color-line: #e6e1d9;         /* hairlines */
-  --color-line-soft: #efeae2;
+  --color-paper: #f7f1e7;        /* primary surface (warm cream) */
+  --color-paper-2: #ede2cf;      /* secondary surface (warm beige) */
+  --color-ink: #2b2218;          /* primary text (warm near-black brown) */
+  --color-ink-soft: #3d3326;
+  --color-muted: #6e5f4c;        /* body-secondary (>= 4.5:1 on paper) */
+  --color-faint: #7a6a4e;        /* captions */
+  --color-line: #e6d9c2;         /* warm hairlines */
+  --color-line-soft: #efe6d6;
 
   --color-wa: #25d366;
   --color-wa-deep: #128c7e;
