@@ -82,6 +82,7 @@ import { baliAreas } from "../data/site";
     const serviceLabel = form.querySelector<HTMLElement>("[data-service-label]");
     let lastFocused: HTMLElement | null = null;
     let currentService = "";
+    let currentCta = "";
 
     const open = () => {
       lastFocused = document.activeElement as HTMLElement;
@@ -102,7 +103,12 @@ import { baliAreas } from "../data/site";
     };
 
     document.querySelectorAll<HTMLElement>("[data-order]").forEach((el) =>
-      el.addEventListener("click", (e) => { e.preventDefault(); currentService = el.getAttribute("data-service") || ""; open(); })
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        currentService = el.getAttribute("data-service") || "";
+        currentCta = el.getAttribute("data-cta") || "";
+        open();
+      })
     );
     modal.querySelectorAll<HTMLElement>("[data-close]").forEach((el) => el.addEventListener("click", close));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
@@ -122,7 +128,36 @@ import { baliAreas } from "../data/site";
         const res = await fetch("/api/lead", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error || "Gagal mengirim. Silakan coba lagi.");
-        window.location.href = data.waUrl;
+
+        const goToWhatsApp = () => { window.location.href = data.waUrl; };
+
+        // Conversion fires ONLY for a genuinely stored lead (data.lead) — once per
+        // completed form. The unique event_id lets GTM/Google Ads dedupe so one
+        // submit == one conversion, keeping Ads in sync with the admin dashboard.
+        // (Repoint the Ads conversion trigger from `whatsapp_click` to `generate_lead`.)
+        if (data.lead) {
+          const dl = ((window as any).dataLayer = (window as any).dataLayer || []);
+          const eventId =
+            self.crypto && "randomUUID" in self.crypto
+              ? self.crypto.randomUUID()
+              : `lead-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          let navigated = false;
+          const go = () => { if (!navigated) { navigated = true; goToWhatsApp(); } };
+          dl.push({
+            event: "generate_lead",
+            event_id: eventId,
+            lead_id: data.leadId ?? null,
+            lead_source: data.source ?? null,
+            gclid: data.gclid ?? null,
+            cta_location: currentCta || (currentService ? "service" : "form"),
+            eventCallback: go,
+            eventTimeout: 700,
+          });
+          setTimeout(go, 800); // hard fallback if no GTM tag claims eventCallback
+          return;
+        }
+
+        goToWhatsApp();
       } catch (err) {
         if (errEl) { errEl.textContent = (err as Error).message; errEl.classList.remove("hidden"); }
         if (btn) { btn.disabled = false; btn.textContent = orig; }

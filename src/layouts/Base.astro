@@ -70,8 +70,12 @@ const ogImageAbs = new URL(ogImage, Astro.site);
         document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
       }
 
+      // Soft micro-event for DIRECT WhatsApp links only. CTAs with [data-order]
+      // open the lead form instead — their real conversion is `generate_lead`
+      // (fired in LeadModal after the lead is stored), so they must NOT also push
+      // a click event here or Google Ads would over-count modal opens.
       (window as any).dataLayer = (window as any).dataLayer || [];
-      document.querySelectorAll('a[href*="wa.me"], a[href*="api.whatsapp.com"]').forEach((link) => {
+      document.querySelectorAll('a[href*="wa.me"]:not([data-order]), a[href*="api.whatsapp.com"]:not([data-order])').forEach((link) => {
         link.addEventListener("click", () => {
           (window as any).dataLayer.push({ event: "whatsapp_click", cta_location: link.getAttribute("data-cta") || "unknown" });
         });

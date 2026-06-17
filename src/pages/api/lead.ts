@@ -34,13 +34,18 @@ export const POST: APIRoute = async ({ request }) => {
   const url = waUrl(text);
 
   // Honeypot: bots fill the hidden field. Let them "succeed" but never store.
-  if (body.website) return json({ ok: true, waUrl: url });
+  // `lead:false` => client must NOT fire the generate_lead conversion.
+  if (body.website) return json({ ok: true, lead: false, waUrl: url });
 
   const params = new URLSearchParams(String(body.query || ""));
   const attr = detectSource(params, body.referrer || null);
 
+  // Only a genuinely stored lead counts as a conversion. If the DB write
+  // fails we still send the customer to WhatsApp, but report lead:false so
+  // Google Ads stays in sync with what the admin dashboard actually shows.
+  let leadId: number | null = null;
   try {
-    await insertLead({
+    const row = await insertLead({
       name,
       phone,
       city,
@@ -54,10 +59,18 @@ export const POST: APIRoute = async ({ request }) => {
       referrer: body.referrer || null,
       page: (body.page || "").slice(0, 255) || null,
     });
+    leadId = row?.id ?? null;
   } catch (e) {
     // Never block the customer from reaching WhatsApp on a DB hiccup.
     console.error("[lead] insert failed:", e);
   }
 
-  return json({ ok: true, waUrl: url });
+  return json({
+    ok: true,
+    lead: leadId !== null,
+    leadId,
+    source: attr.source,
+    gclid: attr.gclid,
+    waUrl: url,
+  });
 };
