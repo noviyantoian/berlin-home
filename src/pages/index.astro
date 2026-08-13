@@ -8,36 +8,64 @@ import HowItWorks from "../components/HowItWorks.astro";
 import Features from "../components/Features.astro";
 import Testimonials from "../components/Testimonials.astro";
 import Area from "../components/Area.astro";
+import Faq from "../components/Faq.astro";
 import FinalCta from "../components/FinalCta.astro";
 import Footer from "../components/Footer.astro";
 import WaFab from "../components/WaFab.astro";
 import LeadModal from "../components/LeadModal.astro";
+import { faqs } from "../data/site";
 
-const title = "Berlin Home Spa · Pijat & Refleksi Panggilan Profesional di Bali";
+const title = "Pijat Panggilan Bali 24 Jam · Massage & Spa ke Lokasi Anda";
 const description =
-  "Terapis bersertifikat datang ke rumah, hotel, villa, atau apartemen Anda. Layanan pijat relaksasi & refleksi profesional, higienis, 24 jam di seluruh Bali. Gratis ongkir, pesan via WhatsApp.";
+  "Pijat, massage & spa panggilan 24 jam di seluruh Bali. Terapis bersertifikat datang ke rumah, hotel & villa Anda — Denpasar, Seminyak, Canggu, Kuta, Sanur, Ubud. Gratis transport, pesan via WhatsApp.";
 
+const areaCities = [
+  "Denpasar", "Seminyak", "Canggu", "Kuta", "Legian",
+  "Sanur", "Jimbaran", "Nusa Dua", "Uluwatu", "Kerobokan", "Ubud",
+];
+
+// One JSON-LD @graph: the local business + a FAQPage generated from the same
+// `faqs` used on the page (single source of truth, no content drift).
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "HealthAndBeautyBusiness",
-  name: "Berlin Home Spa & Reflexology",
-  description: "Layanan pijat relaksasi dan refleksi panggilan oleh terapis bersertifikat di seluruh Bali.",
-  image: "https://berlinhomespa.com/assets/images/og.jpg",
-  url: "https://berlinhomespa.com/",
-  telephone: "+6282333078188",
-  priceRange: "$$",
-  areaServed: { "@type": "AdministrativeArea", name: "Bali" },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    opens: "00:00",
-    closes: "23:59",
-  },
-  makesOffer: [
-    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Pijat Tradisional Full Body" } },
-    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Vitalitas" } },
-    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Lulur Scrub" } },
-    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Refleksi & Full Body" } },
+  "@graph": [
+    {
+      "@type": "HealthAndBeautyBusiness",
+      "@id": "https://berlinhomespa.com/#business",
+      name: "Berlin Home Spa & Reflexology",
+      description:
+        "Layanan pijat, massage & spa panggilan (outcall) 24 jam oleh terapis bersertifikat di seluruh Bali — datang ke rumah, hotel, villa, dan apartemen Anda.",
+      image: "https://berlinhomespa.com/assets/images/og.jpg",
+      url: "https://berlinhomespa.com/",
+      telephone: "+6282333078188",
+      priceRange: "$$",
+      currenciesAccepted: "IDR",
+      areaServed: [
+        { "@type": "AdministrativeArea", name: "Bali" },
+        ...areaCities.map((name) => ({ "@type": "City", name })),
+      ],
+      openingHoursSpecification: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "00:00",
+        closes: "23:59",
+      },
+      makesOffer: [
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Pijat Tradisional Full Body" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Vitalitas" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Full Body & Lulur Scrub" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Refleksi & Full Body" } },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://berlinhomespa.com/#faq",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
   ],
 });
 ---
@@ -52,6 +80,7 @@ const jsonLd = JSON.stringify({
     <Features />
     <Testimonials />
     <Area />
+    <Faq />
     <FinalCta />
   </main>
   <Footer />

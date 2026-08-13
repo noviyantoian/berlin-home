@@ -1,0 +1,106 @@
+# ============================================================
+# Berlin Home Spa — Negative Keyword List (paste-ready)
+# Sumber: Search terms report 3 Jun–2 Jul 2026
+# Cara pakai: Google Ads > Keywords > Negative keywords > + >
+#   pilih level Campaign > paste blok di bawah > pilih match type
+#   sesuai tanda: "..." = phrase, [...] = exact, tanpa tanda = broad.
+# Tujuan: buang klik salah-intent -> CTR & relevance naik -> CPC turun.
+# ============================================================
+
+# ---- A. Intent dewasa / non-terapeutik (WAJIB — brand safety) ----
+"body to body"
+"body 2 body"
+"boom boom"
+"happy massage"
+"happy ending"
+"nuru"
+"lingam"
+"sensual"
+"sexual"
+"erotic"
+"plus plus"
+"red light"
+"night service"
+"wanita panggilan"
+"cewek"
+"gay"
+"adult spa"
+"hiburan"
+
+# ---- B. Luar Bali (kita hanya melayani Bali) ----
+"bandung"
+"jakarta"
+"surabaya"
+"makassar"
+"palembang"
+"mataram"
+"lombok"
+"semarang"
+"yogyakarta"
+"jogja"
+"medan"
+"bekasi"
+"tangerang"
+"bogor"
+"malang"
+"solo"
+
+# ---- C. Riset kompetitor / brand lain (konversi rendah) ----
+"fajar spa"
+"prana spa"
+"tsutsu"
+"delta spa"
+"sway spa"
+"volupta"
+"koya spa"
+"alma spa"
+"venus spa"
+"martha tilaar"
+"maharani spa"
+"belinda spa"
+"flame spa"
+"cabana spa"
+"bodyworks"
+"refrezz"
+"karma kandara"
+"sundari"
+"amelie spa"
+"luna spa"
+"inka spa"
+"kimberly spa"
+"beatrix spa"
+"serenity spa"
+"river view spa"
+"mansion spa"
+"carla spa"
+"129 spa"
+"d2d spa"
+
+# ---- D. Junk / salah layanan / cari lowongan-info ----
+"gojek"
+"gomassage"
+"telegram"
+"lowongan"
+"loker"
+"gaji"
+"tutorial"
+"cara pijat"
+"alat pijat"
+"kursus"
+"training"
+"reviews"
+"photos"
+"foto"
+"price list"
+"parlors"
+
+# ============================================================
+# OPSIONAL — pantau dulu 1–2 minggu sebelum di-exclude.
+# Price-shopper kadang tetap konversi; jangan buru-buru blokir.
+# ============================================================
+# "murah"
+# "cheap"
+# "harga"
+# "tarif"
+# "gratis"
+# "airport"      # "massage airport bali" — transit, marginal utk outcall

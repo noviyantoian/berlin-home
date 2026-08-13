@@ -1,20 +1,35 @@
 ---
+import { Icon } from "astro-icon/components";
 import Cta from "./Cta.astro";
-import { WA_GENERAL } from "../data/site";
+import { WA_GENERAL, heroChips, heroTaglineEn, dkiCities } from "../data/site";
 ---
-<section class="hero relative overflow-hidden" aria-labelledby="hero-title">
+<section class="hero relative overflow-hidden" aria-labelledby="hero-title" data-cities={JSON.stringify(dkiCities)}>
   <div class="wrap grid min-h-[100dvh] items-center gap-10 lg:grid-cols-12 lg:gap-12">
     <div class="hero-copy order-2 pb-14 lg:order-1 lg:col-span-7 lg:pb-0 lg:pr-4">
-      <p class="kicker hero-stagger" style="--d:0ms">Spa &amp; Refleksi Panggilan · Bali</p>
-      <h1 id="hero-title" class="hero-stagger mt-5 text-display" style="--d:80ms">
-        Pijat profesional,<br /><em>di tempat Anda.</em>
+      <p class="kicker hero-stagger" style="--d:0ms" data-loc-eyebrow>Pijat · Massage · Spa Panggilan — Seluruh Bali</p>
+      <h1 id="hero-title" class="hero-h1 mt-5 text-display">
+        Pijat panggilan 24 jam,<br /><em>datang ke tempat Anda.</em>
       </h1>
-      <p class="lead hero-stagger mt-6 max-w-[46ch]" style="--d:160ms">
-        Terapis bersertifikat datang ke rumah, hotel, villa, atau apartemen Anda. Tersedia 24 jam di seluruh Bali.
+      <p class="lead hero-stagger mt-6 max-w-[48ch]" style="--d:140ms">
+        Terapis bersertifikat datang ke rumah, hotel, villa &amp; apartemen Anda — Denpasar, Seminyak, Canggu, Kuta, Sanur, Ubud, dan seluruh Bali. Massage, spa &amp; refleksi, tersedia 24 jam.
       </p>
-      <div class="hero-stagger mt-9 flex flex-wrap items-center gap-3" style="--d:240ms">
+      <p class="hero-stagger mt-2 max-w-[48ch] text-sm text-muted" style="--d:180ms" lang="en">{heroTaglineEn}</p>
+
+      <ul class="hero-stagger mt-6 flex flex-wrap gap-x-5 gap-y-2.5" style="--d:220ms" aria-label="Keunggulan layanan">
+        {heroChips.map((c) => (
+          <li class="flex items-center gap-1.5 text-sm font-medium text-ink-soft">
+            <Icon name="ph:check-circle-fill" class="text-[1.05rem] text-maroon" />{c}
+          </li>
+        ))}
+      </ul>
+
+      <p class="hero-stagger mt-5 hidden items-center gap-2 text-sm font-semibold text-maroon" style="--d:250ms" data-loc-note hidden>
+        <Icon name="ph:map-pin-fill" class="text-[1.05rem]" /><span data-loc-text></span>
+      </p>
+
+      <div class="hero-stagger mt-8 flex flex-wrap items-center gap-3" style="--d:290ms">
         <Cta href={WA_GENERAL} label="Pesan via WhatsApp" location="hero" order lg />
-        <a class="btn btn--ghost btn--lg" href="#layanan">Lihat layanan</a>
+        <a class="btn btn--ghost btn--lg" href="#layanan">Lihat layanan &amp; area</a>
       </div>
     </div>
 
@@ -36,6 +51,44 @@ import { WA_GENERAL } from "../data/site";
   .hero { padding-top: clamp(78px, 9vw, 110px); }
   @media (prefers-reduced-motion: no-preference) {
     .hero-stagger { opacity: 0; animation: hero-in .8s var(--ease) forwards; animation-delay: var(--d, 0ms); }
+    /* LCP-safe: the H1 is a likely LCP element, so it must paint at full opacity
+       immediately. Animate transform only (no opacity gate, no delay). */
+    .hero-h1 { animation: hero-rise .8s var(--ease) both; }
   }
   @keyframes hero-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes hero-rise { from { transform: translateY(14px); } to { transform: none; } }
 </style>
+
+<script>
+  // Dynamic-location insertion (DKI). Ads can point to `/?loc=Canggu` (or the
+  // keyword param may contain a known area); the hero then echoes that area for
+  // tight message match, lifting Landing Page Experience. Whitelist + textContent
+  // only — the raw URL value is never inserted into the DOM, so it is XSS-safe.
+  const hero = document.querySelector<HTMLElement>(".hero[data-cities]");
+  if (hero) {
+    let cities: string[] = [];
+    try { cities = JSON.parse(hero.dataset.cities || "[]"); } catch { cities = []; }
+    const params = new URLSearchParams(location.search);
+    const raw = (
+      params.get("loc") || params.get("area") ||
+      params.get("k") || params.get("keyword") || ""
+    ).toLowerCase();
+
+    if (raw && cities.length) {
+      const hit = cities.find((c) => raw.includes(c.toLowerCase()));
+      if (hit) {
+        const eyebrow = hero.querySelector<HTMLElement>("[data-loc-eyebrow]");
+        if (eyebrow) eyebrow.textContent = `Pijat & Massage Panggilan — Area ${hit}, Bali`;
+
+        const note = hero.querySelector<HTMLElement>("[data-loc-note]");
+        const noteText = hero.querySelector<HTMLElement>("[data-loc-text]");
+        if (note && noteText) {
+          noteText.textContent = `Melayani ${hit} & sekitarnya — terapis terdekat siap datang.`;
+          note.hidden = false;
+          note.classList.remove("hidden");
+          note.classList.add("flex");
+        }
+      }
+    }
+  }
+</script>

@@ -17,12 +17,43 @@ export const navLinks = [
   { href: "#cara-kerja", label: "Cara Kerja" },
   { href: "#alasan", label: "Keunggulan" },
   { href: "#area", label: "Area" },
+  { href: "#faq", label: "FAQ" },
 ];
 
-export const valueProps = [
-  "Tanpa biaya transport",
-  "Pilih terapis sendiri",
-  "Higienis & profesional",
+// Short, keyword-aligned proof chips shown under the hero headline.
+// Tokens deliberately mirror top search terms: "24 jam", outcall ("datang ke
+// lokasi Anda"), "bersertifikat", "gratis transport".
+export const heroChips = [
+  "Buka 24 jam",
+  "Datang ke lokasi Anda",
+  "Terapis bersertifikat",
+  "Gratis transport",
+];
+
+// English accent line — a large share of Seminyak/Canggu/Ubud searches are in
+// English (outcall massage bali, 24 hour massage, canggu massage). Shown small
+// under the Indonesian lead so foreign visitors grasp the offer instantly.
+export const heroTaglineEn =
+  "Professional mobile massage & spa — to your door, 24/7 across Bali.";
+
+// Whitelist for dynamic-location insertion (DKI). When an ad sends visitors to
+// `/?loc=Canggu` (or the keyword contains a known area), the hero echoes that
+// area for tight message match. Whitelist-only + textContent keeps it XSS-safe.
+export const dkiCities = [
+  "Denpasar",
+  "Seminyak",
+  "Canggu",
+  "Kuta",
+  "Legian",
+  "Sanur",
+  "Jimbaran",
+  "Nusa Dua",
+  "Uluwatu",
+  "Kerobokan",
+  "Ubud",
+  "Gianyar",
+  "Tabanan",
+  "Renon",
 ];
 
 export type Service = {
@@ -111,9 +142,9 @@ export const testimonials: Testimonial[] = [
 ];
 
 export const regions = [
-  { name: "Bali Selatan", detail: "Kuta · Legian · Seminyak · Canggu · Jimbaran · Nusa Dua · Uluwatu" },
-  { name: "Denpasar & Sanur", detail: "Denpasar · Sanur · Kerobokan" },
-  { name: "Ubud & sekitarnya", detail: "Ubud · Gianyar · sekitarnya" },
+  { name: "Bali Selatan", detail: "Kuta · Legian · Seminyak · Canggu · Kerobokan · Jimbaran · Nusa Dua · Uluwatu" },
+  { name: "Denpasar & Sanur", detail: "Denpasar · Sanur · Renon · Sunset Road" },
+  { name: "Ubud & Gianyar", detail: "Ubud · Gianyar · Tabanan · sekitarnya" },
 ];
 
 // Pilihan wilayah Bali untuk form pemesanan (disimpan di kolom `city`).
@@ -129,5 +160,48 @@ export const baliAreas = [
   "Nusa Dua",
   "Uluwatu",
   "Ubud",
+  "Gianyar",
+  "Tabanan",
   "Area lain di Bali",
+];
+
+// FAQ — direct-response answers mapped to real search intents from the Ads
+// search-terms report (panggilan/outcall, 24 jam, terdekat, area, gender,
+// professional/therapeutic). Doubles as relevant, original content for Landing
+// Page Experience and powers FAQPage structured data.
+export type Faq = { q: string; a: string };
+
+export const faqs: Faq[] = [
+  {
+    q: "Apakah terapis benar-benar datang ke lokasi saya?",
+    a: "Ya. Berlin Home Spa adalah layanan pijat panggilan (outcall) — terapis datang langsung ke rumah, hotel, villa, atau apartemen Anda di seluruh Bali. Anda tidak perlu ke mana-mana.",
+  },
+  {
+    q: "Area mana saja yang dilayani di Bali?",
+    a: "Kami melayani seluruh Bali: Denpasar, Seminyak, Canggu, Kuta, Legian, Kerobokan, Sanur, Jimbaran, Nusa Dua, Uluwatu, Ubud, dan sekitarnya. Sebutkan lokasi Anda saat memesan, dan kami arahkan terapis terdekat.",
+  },
+  {
+    q: "Apakah layanan tersedia 24 jam?",
+    a: "Ya, kami buka 24 jam setiap hari. Anda bisa memesan pagi, siang, malam, hingga dini hari — cukup chat WhatsApp dan kami cek ketersediaan terapis saat itu juga.",
+  },
+  {
+    q: "Layanan apa saja dan berapa lama durasinya?",
+    a: "Tersedia pijat tradisional full body, full body & vitalitas, full body & lulur scrub, serta refleksi & full body. Durasi 60–120 menit sesuai pilihan, dikonfirmasi saat pemesanan.",
+  },
+  {
+    q: "Bisa memilih terapis pria atau wanita?",
+    a: "Bisa. Sampaikan preferensi Anda (pria atau wanita) saat memesan, dan kami sesuaikan dengan ketersediaan terapis di area Anda.",
+  },
+  {
+    q: "Apakah ini layanan pijat yang profesional?",
+    a: "Sepenuhnya profesional dan terapeutik. Terapis kami bersertifikat, mengikuti protokol higienis, dan berfokus pada relaksasi serta pemulihan tubuh. Ini bukan layanan dewasa.",
+  },
+  {
+    q: "Apakah ada biaya transport?",
+    a: "Tidak. Transport terapis ke lokasi Anda gratis di seluruh area layanan Bali — tanpa biaya tersembunyi. Detail layanan dikonfirmasi via WhatsApp sebelum sesi.",
+  },
+  {
+    q: "Bagaimana cara memesan?",
+    a: "Klik tombol WhatsApp, isi nama, nomor, dan wilayah Anda. Admin akan mengonfirmasi layanan, jadwal, dan terapis, lalu terapis datang ke lokasi Anda.",
+  },
 ];
