@@ -1,0 +1,60 @@
+---
+import AdminShell from "../../components/AdminShell.astro";
+import { Icon } from "astro-icon/components";
+import { errorMessage, successMessage } from "../../lib/admin-messages";
+import { MIN_PASSWORD_LENGTH, ROLE_HINT, ROLE_LABEL, type UserRole } from "../../lib/users";
+
+export const prerender = false;
+
+const sp = Astro.url.searchParams;
+const ok = successMessage(sp.get("ok"));
+const err = errorMessage(sp.get("err"));
+
+const me = Astro.locals.user!;
+const role = me.role as UserRole;
+---
+
+<AdminShell title="Akun Saya — Berlin Home Spa" active="akun">
+  <div class="mt-6 grid max-w-[42rem] gap-6">
+    <section class="adm-card p-5">
+      <h1 class="font-display text-xl text-ink">Akun saya</h1>
+      <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-[9rem_1fr]">
+        <dt class="text-faint">Nama</dt><dd class="font-medium">{me.name}</dd>
+        <dt class="text-faint">Username</dt><dd class="font-mono">{me.username}</dd>
+        <dt class="text-faint">Hak akses</dt>
+        <dd><span class="font-medium">{ROLE_LABEL[role]}</span> <span class="block text-xs text-muted">{ROLE_HINT[role]}</span></dd>
+      </dl>
+    </section>
+
+    <section class="adm-card p-5">
+      <h2 class="flex items-center gap-2 font-display text-lg text-ink"><Icon name="ph:lock-key" /> Ubah password</h2>
+
+      {ok && <p class="adm-alert adm-alert--ok mt-4">{ok}</p>}
+      {err && <p class="adm-alert adm-alert--err mt-4">{err}</p>}
+
+      {me.isBootstrap ? (
+        <p class="mt-3 max-w-[60ch] text-sm text-muted">
+          Kamu masuk sebagai admin utama yang kredensialnya disimpan di variabel server. Ganti passwordnya dengan memperbarui
+          <code class="mx-1">ADMIN_PASSWORD_HASH</code> di file <code>.env</code>, lalu restart aplikasi.
+        </p>
+      ) : (
+        <form method="POST" action="/api/admin/account/password" class="mt-4 grid gap-3 sm:max-w-sm">
+          <div class="grid gap-1.5">
+            <label class="text-sm font-medium" for="current_password">Password saat ini</label>
+            <input class="adm-in" id="current_password" name="current_password" type="password" required autocomplete="current-password" />
+          </div>
+          <div class="grid gap-1.5">
+            <label class="text-sm font-medium" for="new_password">Password baru</label>
+            <input class="adm-in" id="new_password" name="new_password" type="password" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
+            <span class="text-xs text-faint">Minimal {MIN_PASSWORD_LENGTH} karakter.</span>
+          </div>
+          <div class="grid gap-1.5">
+            <label class="text-sm font-medium" for="confirm_password">Ulangi password baru</label>
+            <input class="adm-in" id="confirm_password" name="confirm_password" type="password" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
+          </div>
+          <button class="btn btn--primary mt-1 justify-self-start" type="submit">Simpan password</button>
+        </form>
+      )}
+    </section>
+  </div>
+</AdminShell>

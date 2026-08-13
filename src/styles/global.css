@@ -112,6 +112,17 @@
     border: 1px solid var(--color-line); color: var(--color-muted); background: var(--color-paper);
   }
 
+  /* --- Dashboard admin (behind /admin, never rendered on public pages) --- */
+  .adm-in {
+    padding: 0.5rem 0.7rem; font: inherit; font-size: 0.9rem; color: var(--color-ink);
+    background: #fff; border: 1.5px solid var(--color-line); border-radius: 9px;
+  }
+  .adm-in:focus { outline: none; border-color: var(--color-maroon); }
+  .adm-card { border: 1px solid var(--color-line); background: var(--color-paper); }
+  .adm-alert { padding: 0.75rem 1rem; font-size: 0.9rem; border: 1px solid; }
+  .adm-alert--ok { border-color: rgba(6, 95, 70, 0.3); background: #ecfdf5; color: #065f46; }
+  .adm-alert--err { border-color: rgba(190, 49, 68, 0.3); background: var(--color-blush); color: var(--color-maroon-ink); }
+
   /* Floating WhatsApp affordance */
   .wa-fab {
     position: fixed; z-index: 60;
