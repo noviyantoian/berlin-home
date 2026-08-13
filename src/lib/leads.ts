@@ -57,9 +57,19 @@ export function normalizePhone(raw: string | null | undefined): string | null {
   return digits;
 }
 
-export function waHref(raw: string | null | undefined): string | null {
+/**
+ * Opening line pre-filled into the admin's WhatsApp compose box, so following up
+ * on a lead is one tap instead of retyping the same greeting every time.
+ * Edit the wording here — this is the only place it lives.
+ */
+export function waGreeting(name: string, city: string): string {
+  return `Halo kak ${name}, saya lihat kakak order layanan Berlin Home Spa di ${city}? konfirmasi kak ingin order untuk layanan apa dan jam berapa kak`;
+}
+
+export function waHref(raw: string | null | undefined, message?: string): string | null {
   const n = normalizePhone(raw);
-  return n ? `https://wa.me/${n}` : null;
+  if (!n) return null;
+  return message ? `https://wa.me/${n}?text=${encodeURIComponent(message)}` : `https://wa.me/${n}`;
 }
 
 export function telHref(raw: string | null | undefined): string | null {

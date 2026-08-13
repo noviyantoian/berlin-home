@@ -1,6 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
-import { formatLeadTime, formatPhone, telHref, waHref } from "../../lib/leads";
+import { formatLeadTime, formatPhone, telHref, waGreeting, waHref } from "../../lib/leads";
 import type { Lead } from "../../lib/schema";
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 
 const { lead, showIp = false } = Astro.props;
 
-const wa = waHref(lead.phone);
+const wa = waHref(lead.phone, waGreeting(lead.name, lead.city));
 const tel = telHref(lead.phone);
 const phone = formatPhone(lead.phone);
 
