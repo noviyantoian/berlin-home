@@ -1,5 +1,5 @@
 ---
-import AdminShell from "../../components/AdminShell.astro";
+import AdminShell from "../../components/admin/AdminShell.astro";
 import { Icon } from "astro-icon/components";
 import { bootstrapUsername } from "../../lib/auth";
 import { errorMessage, successMessage } from "../../lib/admin-messages";
@@ -24,7 +24,7 @@ try {
 const fmt = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Makassar", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
 });
-const fmtDate = (value: Date | string | null) => (value ? fmt.format(new Date(value)) : "—");
+const fmtDate = (value: Date | string | null) => (value ? fmt.format(new Date(value)) : "Belum pernah");
 
 const roleClass: Record<UserRole, string> = {
   admin: "bg-blush text-maroon-ink",
@@ -33,149 +33,143 @@ const roleClass: Record<UserRole, string> = {
 ---
 
 <AdminShell title="Kelola Pengguna — Berlin Home Spa" active="users">
-  <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-    <section class="adm-card order-2 lg:order-1">
-      <div class="border-b border-line p-5">
-        <h1 class="font-display text-xl text-ink">Pengguna dashboard</h1>
-        <p class="mt-1 max-w-[60ch] text-sm text-muted">
-          Akun <strong>Klien</strong> hanya melihat daftar leads yang masuk. Panel deteksi fraud, alamat IP, dan halaman ini tetap khusus <strong>Admin</strong>.
-        </p>
-      </div>
+  {ok && <p class="adm-alert adm-alert--ok mt-4">{ok}</p>}
+  {err && <p class="adm-alert adm-alert--err mt-4">{err}</p>}
+  {dbError && (
+    <p class="adm-alert adm-alert--err mt-4">
+      Database belum tersambung: {dbError}. Cek <code>DATABASE_URL</code> lalu jalankan <code>npm run db:push</code>.
+    </p>
+  )}
 
-      {ok && <p class="adm-alert adm-alert--ok m-5 mb-0">{ok}</p>}
-      {err && <p class="adm-alert adm-alert--err m-5 mb-0">{err}</p>}
-      {dbError && (
-        <p class="adm-alert adm-alert--err m-5 mb-0">
-          Database belum tersambung: {dbError}. Cek <code>DATABASE_URL</code> lalu jalankan <code>npm run db:push</code>.
-        </p>
-      )}
+  <div class="mt-4 grid gap-4 sm:mt-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6">
+    <!-- Collapsed on phones so the list stays the first thing you see -->
+    <section class="adm-card order-1 lg:order-2">
+      <details class="adm-fold">
+        <summary>
+          <span class="flex items-center gap-2"><Icon name="ph:user-plus" /> Tambah pengguna</span>
+          <Icon name="ph:caret-down" class="adm-fold__chev" />
+        </summary>
 
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[46rem] border-collapse text-sm">
-          <thead>
-            <tr class="border-b border-line text-left text-faint">
-              <th class="p-4 font-medium">Pengguna</th>
-              <th class="p-4 font-medium">Hak akses</th>
-              <th class="p-4 font-medium">Status</th>
-              <th class="p-4 font-medium">Terakhir masuk</th>
-              <th class="p-4 font-medium">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-b border-line/60 bg-paper-2/60">
-              <td class="p-4">
-                <div class="font-medium">Admin utama</div>
-                <div class="font-mono text-xs text-faint">{bootstrapUsername()}</div>
-              </td>
-              <td class="p-4"><span class={`tag ${roleClass.admin}`}>Admin</span></td>
-              <td class="p-4 text-muted">Aktif</td>
-              <td class="p-4 text-muted">—</td>
-              <td class="p-4 text-xs text-faint">Dari konfigurasi server (<code>ADMIN_PASSWORD_HASH</code>)</td>
-            </tr>
+        <div class="adm-fold__body p-4 pt-0 md:p-5">
+          <h2 class="hidden items-center gap-2 font-display text-lg text-ink md:flex"><Icon name="ph:user-plus" /> Tambah pengguna</h2>
+          <p class="mt-1 text-sm text-muted">Buat akun untuk klien agar bisa memantau leads sendiri.</p>
 
-            {!dbError && rows.length === 0 && (
-              <tr><td class="p-6 text-center text-faint" colspan="5">Belum ada pengguna tambahan. Buat akun klien lewat formulir di samping.</td></tr>
-            )}
-
-            {rows.map((u) => (
-              <tr class="border-b border-line/60 align-top hover:bg-paper-2">
-                <td class="p-4">
-                  <div class="font-medium">{u.name}{me.id === u.id && <span class="ml-1 text-xs font-normal text-faint">(kamu)</span>}</div>
-                  <div class="font-mono text-xs text-faint">{u.username}</div>
-                  <div class="mt-1 text-xs text-faint">Dibuat {fmtDate(u.createdAt)}{u.createdBy && ` oleh ${u.createdBy}`}</div>
-                </td>
-                <td class="p-4"><span class={`tag ${roleClass[u.role as UserRole] ?? roleClass.client}`}>{ROLE_LABEL[u.role as UserRole] ?? u.role}</span></td>
-                <td class="p-4">
-                  {u.isActive
-                    ? <span class="tag bg-emerald-50 text-emerald-800">Aktif</span>
-                    : <span class="tag bg-paper-2 text-muted">Nonaktif</span>}
-                </td>
-                <td class="whitespace-nowrap p-4 text-muted">{fmtDate(u.lastLoginAt)}</td>
-                <td class="p-4">
-                  <details>
-                    <summary class="tag cursor-pointer list-none hover:border-maroon hover:text-maroon">
-                      <Icon name="ph:gear-six" /> Kelola
-                    </summary>
-                    <div class="mt-3 grid gap-3 border-l-2 border-line pl-3">
-                      <form method="POST" action={`/api/admin/users/${u.id}`} class="grid gap-1.5">
-                        <input type="hidden" name="_action" value="password" />
-                        <label class="text-xs text-faint" for={`pw-${u.id}`}>Password baru</label>
-                        <div class="flex gap-2">
-                          <input class="adm-in w-40" id={`pw-${u.id}`} name="password" type="password" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
-                          <button class="btn btn--ghost !px-3 !py-1.5 !text-xs" type="submit">Simpan</button>
-                        </div>
-                      </form>
-
-                      {me.id !== u.id && (
-                        <>
-                          <form method="POST" action={`/api/admin/users/${u.id}`} class="grid gap-1.5">
-                            <input type="hidden" name="_action" value="role" />
-                            <label class="text-xs text-faint" for={`role-${u.id}`}>Hak akses</label>
-                            <div class="flex gap-2">
-                              <select class="adm-in w-40" id={`role-${u.id}`} name="role">
-                                {USER_ROLES.map((r) => <option value={r} selected={u.role === r}>{ROLE_LABEL[r]}</option>)}
-                              </select>
-                              <button class="btn btn--ghost !px-3 !py-1.5 !text-xs" type="submit">Ubah</button>
-                            </div>
-                          </form>
-
-                          <form method="POST" action={`/api/admin/users/${u.id}`}>
-                            <input type="hidden" name="_action" value="active" />
-                            <input type="hidden" name="is_active" value={u.isActive ? "0" : "1"} />
-                            <button class="btn btn--ghost !px-3 !py-1.5 !text-xs" type="submit">
-                              {u.isActive ? "Nonaktifkan akun" : "Aktifkan akun"}
-                            </button>
-                          </form>
-
-                          <form method="POST" action={`/api/admin/users/${u.id}`} data-confirm={`Hapus pengguna "${u.username}"? Tindakan ini tidak bisa dibatalkan.`}>
-                            <input type="hidden" name="_action" value="delete" />
-                            <button class="cursor-pointer justify-self-start text-xs font-semibold text-maroon underline underline-offset-4 hover:text-maroon-deep" type="submit">Hapus pengguna</button>
-                          </form>
-                        </>
-                      )}
-                    </div>
-                  </details>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <form method="POST" action="/api/admin/users" class="mt-4 grid gap-3">
+            <div class="grid gap-1.5">
+              <label class="text-sm font-medium" for="name">Nama tampilan</label>
+              <input class="adm-in" id="name" name="name" type="text" required maxlength="120" placeholder="Pemilik Berlin Home Spa" />
+            </div>
+            <div class="grid gap-1.5">
+              <label class="text-sm font-medium" for="username">Username</label>
+              <input class="adm-in" id="username" name="username" type="text" required pattern="[a-zA-Z0-9][a-zA-Z0-9._\-]{2,31}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="pemilik" />
+              <span class="text-xs text-faint">3–32 karakter: huruf, angka, titik, garis bawah, strip.</span>
+            </div>
+            <div class="grid gap-1.5">
+              <label class="text-sm font-medium" for="password">Password awal</label>
+              <input class="adm-in" id="password" name="password" type="text" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" autocapitalize="none" spellcheck="false" />
+              <span class="text-xs text-faint">Minimal {MIN_PASSWORD_LENGTH} karakter. Sengaja terlihat agar mudah disalin — minta klien menggantinya lewat menu Akun.</span>
+            </div>
+            <fieldset class="grid gap-2">
+              <legend class="text-sm font-medium">Hak akses</legend>
+              {USER_ROLES.map((r) => (
+                <label class="flex cursor-pointer gap-2.5 border border-line bg-paper-2/50 p-3 text-sm has-[:checked]:border-maroon has-[:checked]:bg-blush">
+                  <input type="radio" name="role" value={r} checked={r === "client"} class="mt-1 size-4 shrink-0 accent-[var(--color-maroon)]" />
+                  <span>
+                    <span class="font-medium">{ROLE_LABEL[r]}</span>
+                    <span class="block text-xs text-muted">{ROLE_HINT[r]}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            <button class="adm-act adm-act--call mt-1 w-full" type="submit"><Icon name="ph:check" /> Buat pengguna</button>
+          </form>
+        </div>
+      </details>
     </section>
 
-    <section class="adm-card order-1 p-5 lg:order-2">
-      <h2 class="flex items-center gap-2 font-display text-lg text-ink"><Icon name="ph:user-plus" /> Tambah pengguna</h2>
-      <p class="mt-1 text-sm text-muted">Buat akun untuk klien agar bisa memantau leads sendiri.</p>
+    <section class="adm-card order-2 lg:order-1">
+      <div class="border-b border-line p-4 sm:p-5">
+        <h1 class="font-display text-xl text-ink">Pengguna dashboard</h1>
+        <p class="mt-1 max-w-[60ch] text-sm text-muted">
+          Akun <strong>Klien</strong> hanya melihat daftar leads. Panel deteksi fraud, alamat IP, dan halaman ini tetap khusus <strong>Admin</strong>.
+        </p>
+      </div>
 
-      <form method="POST" action="/api/admin/users" class="mt-4 grid gap-3">
-        <div class="grid gap-1.5">
-          <label class="text-sm font-medium" for="name">Nama tampilan</label>
-          <input class="adm-in" id="name" name="name" type="text" required maxlength="120" placeholder="Pemilik Berlin Home Spa" />
-        </div>
-        <div class="grid gap-1.5">
-          <label class="text-sm font-medium" for="username">Username</label>
-          <input class="adm-in" id="username" name="username" type="text" required pattern="[a-zA-Z0-9][a-zA-Z0-9._\-]{2,31}" autocomplete="off" placeholder="pemilik" />
-          <span class="text-xs text-faint">3–32 karakter: huruf, angka, titik, garis bawah, strip.</span>
-        </div>
-        <div class="grid gap-1.5">
-          <label class="text-sm font-medium" for="password">Password awal</label>
-          <input class="adm-in" id="password" name="password" type="text" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
-          <span class="text-xs text-faint">Minimal {MIN_PASSWORD_LENGTH} karakter. Sengaja terlihat agar mudah disalin — minta klien menggantinya lewat menu Akun Saya.</span>
-        </div>
-        <fieldset class="grid gap-2">
-          <legend class="text-sm font-medium">Hak akses</legend>
-          {USER_ROLES.map((r) => (
-            <label class="flex cursor-pointer gap-2 border border-line bg-paper-2/50 p-3 text-sm has-[:checked]:border-maroon has-[:checked]:bg-blush">
-              <input type="radio" name="role" value={r} checked={r === "client"} class="mt-1 accent-[var(--color-maroon)]" />
-              <span>
-                <span class="font-medium">{ROLE_LABEL[r]}</span>
-                <span class="block text-xs text-muted">{ROLE_HINT[r]}</span>
-              </span>
-            </label>
-          ))}
-        </fieldset>
-        <button class="btn btn--primary mt-1" type="submit">Buat pengguna</button>
-      </form>
+      <ul class="list-none">
+        <li class="border-b border-line/70 bg-paper-2/50 p-4 sm:px-5">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-medium">Admin utama</span>
+            <span class={`tag !px-2 !py-0.5 !text-[0.7rem] ${roleClass.admin}`}>Admin</span>
+          </div>
+          <p class="font-mono text-xs text-faint">{bootstrapUsername()}</p>
+          <p class="mt-1 text-xs text-faint">Dari konfigurasi server (<code>ADMIN_PASSWORD_HASH</code>), tidak bisa diubah dari sini.</p>
+        </li>
+
+        {!dbError && rows.length === 0 && (
+          <li class="px-4 py-10 text-center text-faint sm:px-5">Belum ada pengguna tambahan. Gunakan <strong>Tambah pengguna</strong> untuk membuat akun klien.</li>
+        )}
+
+        {rows.map((u) => (
+          <li class="border-b border-line/70 p-4 last:border-b-0 sm:px-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-display text-lg leading-snug text-ink">{u.name}</h3>
+              {me.id === u.id && <span class="text-xs text-faint">(kamu)</span>}
+              <span class={`tag !px-2 !py-0.5 !text-[0.7rem] ${roleClass[u.role as UserRole] ?? roleClass.client}`}>{ROLE_LABEL[u.role as UserRole] ?? u.role}</span>
+              {u.isActive
+                ? <span class="tag !px-2 !py-0.5 !text-[0.7rem] bg-emerald-50 text-emerald-800">Aktif</span>
+                : <span class="tag !px-2 !py-0.5 !text-[0.7rem] bg-paper-2 text-muted">Nonaktif</span>}
+            </div>
+            <p class="font-mono text-xs text-faint">{u.username}</p>
+            <p class="mt-1 text-xs text-faint">
+              Terakhir masuk {fmtDate(u.lastLoginAt)} · dibuat {fmtDate(u.createdAt)}{u.createdBy && ` oleh ${u.createdBy}`}
+            </p>
+
+            <details class="mt-3">
+              <summary class="adm-act adm-act--sm inline-flex list-none"><Icon name="ph:gear-six" /> Kelola</summary>
+              <div class="mt-3 grid gap-4 border-l-2 border-line pl-3">
+                <form method="POST" action={`/api/admin/users/${u.id}`} class="grid gap-1.5">
+                  <input type="hidden" name="_action" value="password" />
+                  <label class="text-xs text-faint" for={`pw-${u.id}`}>Password baru</label>
+                  <div class="grid gap-2 sm:flex sm:items-center">
+                    <input class="adm-in sm:w-48" id={`pw-${u.id}`} name="password" type="password" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
+                    <button class="adm-act adm-act--sm" type="submit">Simpan password</button>
+                  </div>
+                </form>
+
+                {me.id !== u.id && (
+                  <>
+                    <form method="POST" action={`/api/admin/users/${u.id}`} class="grid gap-1.5">
+                      <input type="hidden" name="_action" value="role" />
+                      <label class="text-xs text-faint" for={`role-${u.id}`}>Hak akses</label>
+                      <div class="grid gap-2 sm:flex sm:items-center">
+                        <select class="adm-in sm:w-48" id={`role-${u.id}`} name="role">
+                          {USER_ROLES.map((r) => <option value={r} selected={u.role === r}>{ROLE_LABEL[r]}</option>)}
+                        </select>
+                        <button class="adm-act adm-act--sm" type="submit">Ubah hak akses</button>
+                      </div>
+                    </form>
+
+                    <div class="grid gap-2 sm:flex">
+                      <form method="POST" action={`/api/admin/users/${u.id}`}>
+                        <input type="hidden" name="_action" value="active" />
+                        <input type="hidden" name="is_active" value={u.isActive ? "0" : "1"} />
+                        <button class="adm-act adm-act--sm w-full" type="submit">
+                          {u.isActive ? "Nonaktifkan akun" : "Aktifkan akun"}
+                        </button>
+                      </form>
+
+                      <form method="POST" action={`/api/admin/users/${u.id}`} data-confirm={`Hapus pengguna "${u.username}"? Tindakan ini tidak bisa dibatalkan.`}>
+                        <input type="hidden" name="_action" value="delete" />
+                        <button class="adm-act adm-act--sm adm-act--danger w-full" type="submit"><Icon name="ph:trash" /> Hapus</button>
+                      </form>
+                    </div>
+                  </>
+                )}
+              </div>
+            </details>
+          </li>
+        ))}
+      </ul>
     </section>
   </div>
 

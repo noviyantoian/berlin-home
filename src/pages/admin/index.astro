@@ -1,5 +1,6 @@
 ---
-import AdminShell from "../../components/AdminShell.astro";
+import AdminShell from "../../components/admin/AdminShell.astro";
+import LeadCard from "../../components/admin/LeadCard.astro";
 import { Icon } from "astro-icon/components";
 import { getStats, listLeads, getFraudReport, type Stats, type FraudRow } from "../../lib/leads";
 
@@ -47,95 +48,111 @@ const labelText: Record<string, string> = { fraud: "Fraud", suspicious: "Mencuri
 const fmt = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Makassar", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
 });
-const sourceClass: Record<string, string> = {
-  cpc: "bg-blush text-maroon-ink", organic: "bg-emerald-50 text-emerald-800",
-  social: "bg-indigo-50 text-indigo-800", referral: "bg-amber-50 text-amber-800", direct: "bg-paper-2 text-muted",
-};
+
 const pageHref = (p: number) => {
   const u = new URLSearchParams(sp);
   u.set("page", String(p));
   return `/admin?${u.toString()}`;
 };
 const sources = ["", "cpc", "organic", "social", "referral", "direct"];
-const leadColumns = isAdmin ? 6 : 5;
+
+// Surfaced in the collapsed filter summary so a phone user never wonders why
+// the list looks short.
+const activeFilters = [f.q, f.city, f.source, f.from, f.to].filter(Boolean).length;
+
+const statCards = stats
+  ? [
+      { label: "Chat hari ini", value: stats.today, lead: true },
+      { label: "7 hari terakhir", value: stats.last7 },
+      { label: "30 hari terakhir", value: stats.last30 },
+      { label: "Total leads", value: stats.total },
+      { label: "Dari iklan (CPC)", value: stats.cpc },
+    ]
+  : [];
 ---
 
 <AdminShell title="Dashboard — Berlin Home Spa" active="leads">
   {denied && (
-    <p class="adm-alert adm-alert--err mt-6">Halaman itu khusus admin. Hubungi admin bila kamu memang perlu aksesnya.</p>
+    <p class="adm-alert adm-alert--err mt-4">Halaman itu khusus admin. Hubungi admin bila kamu memang perlu aksesnya.</p>
   )}
 
   {dbError && (
-    <p class="adm-alert adm-alert--err mt-6">
+    <p class="adm-alert adm-alert--err mt-4">
       Database belum tersambung: {dbError}. Cek <code>DATABASE_URL</code> &amp; jalankan <code>npm run db:push</code>.
     </p>
   )}
 
   {stats && (
-    <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
-      {[
-        { label: "Chat hari ini", value: stats.today },
-        { label: "7 hari terakhir", value: stats.last7 },
-        { label: "30 hari terakhir", value: stats.last30 },
-        { label: "Total leads", value: stats.total },
-        { label: "Dari iklan (CPC)", value: stats.cpc },
-      ].map((s) => (
-        <div class="adm-card p-4">
+    <section class="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5" aria-label="Ringkasan">
+      {statCards.map((s) => (
+        <div class:list={["adm-card p-3 sm:p-4", s.lead && "col-span-2 sm:col-span-1"]}>
           <div class="text-sm text-muted">{s.label}</div>
-          <div class="mt-1 font-display text-3xl text-ink">{s.value}</div>
+          <div class:list={["mt-0.5 font-display text-ink", s.lead ? "text-4xl sm:text-3xl" : "text-3xl"]}>{s.value}</div>
         </div>
       ))}
     </section>
   )}
 
   {isAdmin && (
-    <section class="adm-card mt-6 p-5">
-      <h2 class="flex items-center gap-2 font-display text-xl text-ink"><Icon name="ph:warning" /> Deteksi Fraud Klik (CPC)</h2>
-      <p class="mt-1 max-w-[70ch] text-sm text-muted">IP berulang dari trafik iklan diberi skor 0–100. Skor ≥ 70 = <strong class="text-maroon-ink">Fraud</strong>, 40–69 = Mencurigakan. Masukkan IP berisiko ke pengecualian IP Google Ads.</p>
+    <section class="adm-card mt-4 sm:mt-6">
+      <details class="adm-fold">
+        <summary>
+          <span class="flex items-center gap-2"><Icon name="ph:warning" /> Deteksi Fraud Klik (CPC)</span>
+          <span class="flex items-center gap-2 text-sm font-normal text-muted">
+            {blocklist.length > 0 && <span class="tag !px-2 !py-0.5 !text-[0.7rem] bg-blush text-maroon-ink">{blocklist.length} IP</span>}
+            <Icon name="ph:caret-down" class="adm-fold__chev" />
+          </span>
+        </summary>
 
-      {fraud.length === 0 ? (
-        <p class="mt-4 bg-paper-2 px-4 py-3 text-sm text-muted">Belum ada IP berulang dari CPC. Panel terisi otomatis saat pengunjung iklan (ada <code>gclid</code> / <code>utm_medium=cpc</code>) submit form ≥ 2×.</p>
-      ) : (
-        <>
-          <div class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[48rem] border-collapse text-sm">
-              <thead><tr class="border-b border-line text-left text-faint">
-                <th class="py-2 pr-4 font-medium">Skor</th>
-                <th class="py-2 pr-4 font-medium">IP</th>
-                <th class="py-2 pr-4 font-medium">CPC</th>
-                <th class="py-2 pr-4 font-medium">Total</th>
-                <th class="py-2 pr-4 font-medium">1j / 24j</th>
-                <th class="py-2 pr-4 font-medium">Alasan</th>
-                <th class="py-2 font-medium">Terakhir</th>
-              </tr></thead>
-              <tbody>
-                {fraud.map((r) => (
-                  <tr class="border-b border-line/60">
-                    <td class="py-2 pr-4"><span class={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${labelClass[r.label]}`}>{r.score} · {labelText[r.label]}</span></td>
-                    <td class="py-2 pr-4 font-mono">{r.ip}</td>
-                    <td class="py-2 pr-4 font-semibold text-maroon">{r.cpc}</td>
-                    <td class="py-2 pr-4">{r.total}</td>
-                    <td class="py-2 pr-4">{r.last1h} / {r.last24h}</td>
-                    <td class="py-2 pr-4 text-xs text-muted">{r.reasons.join(" · ")}</td>
-                    <td class="py-2 whitespace-nowrap text-muted">{fmt.format(new Date(r.lastSeen))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div class="adm-fold__body p-4 pt-0 sm:p-5">
+          <h2 class="hidden items-center gap-2 font-display text-xl text-ink md:flex"><Icon name="ph:warning" /> Deteksi Fraud Klik (CPC)</h2>
+          <p class="mt-1 max-w-[70ch] text-sm text-muted">IP berulang dari trafik iklan diberi skor 0–100. Skor ≥ 70 = <strong class="text-maroon-ink">Fraud</strong>, 40–69 = Mencurigakan. Masukkan IP berisiko ke pengecualian IP Google Ads.</p>
 
-          {blocklist.length > 0 && (
-            <div class="mt-5 border-t border-line pt-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <h3 class="text-sm font-semibold">Blocklist Google Ads · {blocklist.length} IP</h3>
-                <button id="copy-blocklist" type="button" class="tag cursor-pointer hover:border-maroon hover:text-maroon">Salin semua</button>
+          {fraud.length === 0 ? (
+            <p class="mt-4 bg-paper-2 px-4 py-3 text-sm text-muted">Belum ada IP berulang dari CPC. Panel terisi otomatis saat pengunjung iklan (ada <code>gclid</code> / <code>utm_medium=cpc</code>) submit form ≥ 2×.</p>
+          ) : (
+            <>
+              <div class="mt-4 overflow-x-auto">
+                <table class="w-full min-w-[42rem] border-collapse text-sm">
+                  <thead><tr class="border-b border-line text-left text-faint">
+                    <th class="py-2 pr-4 font-medium">Skor</th>
+                    <th class="py-2 pr-4 font-medium">IP</th>
+                    <th class="py-2 pr-4 font-medium">CPC</th>
+                    <th class="py-2 pr-4 font-medium">Total</th>
+                    <th class="py-2 pr-4 font-medium">1j / 24j</th>
+                    <th class="py-2 pr-4 font-medium">Alasan</th>
+                    <th class="py-2 font-medium">Terakhir</th>
+                  </tr></thead>
+                  <tbody>
+                    {fraud.map((r) => (
+                      <tr class="border-b border-line/60">
+                        <td class="py-2 pr-4"><span class={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${labelClass[r.label]}`}>{r.score} · {labelText[r.label]}</span></td>
+                        <td class="py-2 pr-4 font-mono">{r.ip}</td>
+                        <td class="py-2 pr-4 font-semibold text-maroon">{r.cpc}</td>
+                        <td class="py-2 pr-4">{r.total}</td>
+                        <td class="py-2 pr-4">{r.last1h} / {r.last24h}</td>
+                        <td class="py-2 pr-4 text-xs text-muted">{r.reasons.join(" · ")}</td>
+                        <td class="py-2 whitespace-nowrap text-muted">{fmt.format(new Date(r.lastSeen))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <pre id="blocklist-text" class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all bg-paper-2 p-3 font-mono text-xs">{blocklist.join("\n")}</pre>
-              <p class="mt-1 text-xs text-faint">Google Ads → Setelan kampanye → Pengecualian IP. Maks 500 IP per kampanye.</p>
-            </div>
+
+              {blocklist.length > 0 && (
+                <div class="mt-5 border-t border-line pt-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-sm font-semibold">Blocklist Google Ads · {blocklist.length} IP</h3>
+                    <button id="copy-blocklist" type="button" class="adm-act adm-act--sm">Salin semua</button>
+                  </div>
+                  <pre id="blocklist-text" class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all bg-paper-2 p-3 font-mono text-xs">{blocklist.join("\n")}</pre>
+                  <p class="mt-1 text-xs text-faint">Google Ads → Setelan kampanye → Pengecualian IP. Maks 500 IP per kampanye.</p>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </details>
     </section>
   )}
 
@@ -153,59 +170,59 @@ const leadColumns = isAdmin ? 6 : 5;
     });
   </script>
 
-  <section class="adm-card mt-6">
-    <form method="GET" action="/admin" class="flex flex-wrap items-end gap-3 border-b border-line p-4">
-      <div class="grid gap-1"><label class="text-xs text-faint" for="q">Cari nama/HP</label><input class="adm-in" id="q" name="q" value={f.q} placeholder="nama / nomor" /></div>
-      <div class="grid gap-1"><label class="text-xs text-faint" for="city">Kota</label><input class="adm-in" id="city" name="city" value={f.city} placeholder="kota" /></div>
-      <div class="grid gap-1"><label class="text-xs text-faint" for="source">Source</label>
-        <select class="adm-in" id="source" name="source">
-          {sources.map((s) => <option value={s} selected={f.source === s}>{s === "" ? "Semua" : s}</option>)}
-        </select>
-      </div>
-      <div class="grid gap-1"><label class="text-xs text-faint" for="from">Dari</label><input class="adm-in" id="from" name="from" type="date" value={f.from} /></div>
-      <div class="grid gap-1"><label class="text-xs text-faint" for="to">Sampai</label><input class="adm-in" id="to" name="to" type="date" value={f.to} /></div>
-      <button class="btn btn--primary" type="submit">Filter</button>
-      <a class="btn btn--ghost" href="/admin">Reset</a>
-    </form>
+  <section class="adm-card mt-4 sm:mt-6">
+    <details class="adm-fold border-b border-line">
+      <summary>
+        <span class="flex items-center gap-2"><Icon name="ph:funnel" /> Filter &amp; cari</span>
+        <span class="flex items-center gap-2 text-sm font-normal text-muted">
+          {activeFilters > 0 && <span class="tag !px-2 !py-0.5 !text-[0.7rem] bg-blush text-maroon-ink">{activeFilters} aktif</span>}
+          <Icon name="ph:caret-down" class="adm-fold__chev" />
+        </span>
+      </summary>
 
-    <div class="overflow-x-auto">
-      <table class="w-full min-w-[44rem] border-collapse text-sm">
-        <thead><tr class="border-b border-line text-left text-faint">
-          <th class="p-4 font-medium">Waktu</th><th class="p-4 font-medium">Nama</th>
-          <th class="p-4 font-medium">Nomor HP</th><th class="p-4 font-medium">Kota</th>
-          <th class="p-4 font-medium">Source</th>
-          {isAdmin && <th class="p-4 font-medium">IP</th>}
-        </tr></thead>
-        <tbody>
-          {list && list.rows.length === 0 && (
-            <tr><td class="p-6 text-center text-faint" colspan={leadColumns}>Belum ada lead.</td></tr>
-          )}
-          {list && list.rows.map((l) => (
-            <tr class="border-b border-line/60 hover:bg-paper-2">
-              <td class="whitespace-nowrap p-4 text-muted">{fmt.format(new Date(l.createdAt))}</td>
-              <td class="p-4 font-medium">{l.name}</td>
-              <td class="whitespace-nowrap p-4"><a class="ulink" href={`https://wa.me/${(l.phone || "").replace(/\D/g, "").replace(/^0/, "62")}`} target="_blank" rel="noopener">{l.phone}</a></td>
-              <td class="p-4">{l.city}</td>
-              <td class="p-4"><span class={`tag ${sourceClass[l.source] || "bg-paper-2 text-muted"}`}>{l.source}</span></td>
-              {isAdmin && <td class="whitespace-nowrap p-4 font-mono text-xs text-muted">{l.ip}</td>}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      <div class="adm-fold__body p-4 pt-0 md:pt-4">
+        <form method="GET" action="/admin" class="grid gap-3 sm:grid-cols-2 md:flex md:flex-wrap md:items-end">
+          <div class="grid gap-1 sm:col-span-2 md:w-52"><label class="text-xs text-faint" for="q">Cari nama/HP</label><input class="adm-in" id="q" name="q" value={f.q} placeholder="nama / nomor" /></div>
+          <div class="grid gap-1 md:w-40"><label class="text-xs text-faint" for="city">Kota</label><input class="adm-in" id="city" name="city" value={f.city} placeholder="kota" /></div>
+          <div class="grid gap-1 md:w-36"><label class="text-xs text-faint" for="source">Source</label>
+            <select class="adm-in" id="source" name="source">
+              {sources.map((s) => <option value={s} selected={f.source === s}>{s === "" ? "Semua" : s}</option>)}
+            </select>
+          </div>
+          <div class="grid gap-1 md:w-40"><label class="text-xs text-faint" for="from">Dari</label><input class="adm-in" id="from" name="from" type="date" value={f.from} /></div>
+          <div class="grid gap-1 md:w-40"><label class="text-xs text-faint" for="to">Sampai</label><input class="adm-in" id="to" name="to" type="date" value={f.to} /></div>
+          <div class="grid grid-cols-2 gap-2 sm:col-span-2 md:flex md:w-auto">
+            <button class="adm-act adm-act--call" type="submit">Terapkan</button>
+            <a class="adm-act" href="/admin">Reset</a>
+          </div>
+        </form>
+      </div>
+    </details>
 
     {list && (
-      <div class="flex items-center justify-between gap-3 border-t border-line p-4 text-sm">
-        <span class="text-muted">{list.total} lead · halaman {list.page} dari {list.pages}</span>
-        <div class="flex gap-2">
-          <a class={`btn btn--ghost ${list.page <= 1 ? "pointer-events-none opacity-40" : ""}`} href={pageHref(list.page - 1)}>Sebelumnya</a>
-          <a class={`btn btn--ghost ${list.page >= list.pages ? "pointer-events-none opacity-40" : ""}`} href={pageHref(list.page + 1)}>Berikutnya</a>
-        </div>
+      <p class="border-b border-line px-4 py-3 text-sm text-muted sm:px-5">
+        <strong class="font-semibold text-ink">{list.total}</strong> lead
+        {activeFilters > 0 && " (terfilter)"} · halaman {list.page} dari {list.pages}
+      </p>
+    )}
+
+    {list && list.rows.length === 0 ? (
+      <p class="px-4 py-10 text-center text-faint sm:px-5">Belum ada lead.</p>
+    ) : (
+      <ul class="list-none">
+        {list?.rows.map((l) => <LeadCard lead={l} showIp={isAdmin} />)}
+      </ul>
+    )}
+
+    {list && list.pages > 1 && (
+      <div class="grid grid-cols-2 gap-2 border-t border-line p-4 sm:px-5">
+        <a class:list={["adm-act", list.page <= 1 && "pointer-events-none opacity-40"]} href={pageHref(list.page - 1)} rel="prev">
+          <Icon name="ph:caret-left" /> Sebelumnya
+        </a>
+        <a class:list={["adm-act", list.page >= list.pages && "pointer-events-none opacity-40"]} href={pageHref(list.page + 1)} rel="next">
+          Berikutnya <Icon name="ph:caret-right" />
+        </a>
       </div>
     )}
   </section>
 </AdminShell>
-
-<style>
-  table .btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
-</style>

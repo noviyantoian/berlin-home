@@ -1,5 +1,5 @@
 ---
-import AdminShell from "../../components/AdminShell.astro";
+import AdminShell from "../../components/admin/AdminShell.astro";
 import { Icon } from "astro-icon/components";
 import { errorMessage, successMessage } from "../../lib/admin-messages";
 import { MIN_PASSWORD_LENGTH, ROLE_HINT, ROLE_LABEL, type UserRole } from "../../lib/users";
@@ -15,18 +15,18 @@ const role = me.role as UserRole;
 ---
 
 <AdminShell title="Akun Saya — Berlin Home Spa" active="akun">
-  <div class="mt-6 grid max-w-[42rem] gap-6">
-    <section class="adm-card p-5">
+  <div class="mt-4 grid max-w-[42rem] gap-4 sm:mt-6 sm:gap-6">
+    <section class="adm-card p-4 sm:p-5">
       <h1 class="font-display text-xl text-ink">Akun saya</h1>
       <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-[9rem_1fr]">
         <dt class="text-faint">Nama</dt><dd class="font-medium">{me.name}</dd>
-        <dt class="text-faint">Username</dt><dd class="font-mono">{me.username}</dd>
+        <dt class="text-faint">Username</dt><dd class="font-mono break-all">{me.username}</dd>
         <dt class="text-faint">Hak akses</dt>
         <dd><span class="font-medium">{ROLE_LABEL[role]}</span> <span class="block text-xs text-muted">{ROLE_HINT[role]}</span></dd>
       </dl>
     </section>
 
-    <section class="adm-card p-5">
+    <section class="adm-card p-4 sm:p-5">
       <h2 class="flex items-center gap-2 font-display text-lg text-ink"><Icon name="ph:lock-key" /> Ubah password</h2>
 
       {ok && <p class="adm-alert adm-alert--ok mt-4">{ok}</p>}
@@ -52,7 +52,7 @@ const role = me.role as UserRole;
             <label class="text-sm font-medium" for="confirm_password">Ulangi password baru</label>
             <input class="adm-in" id="confirm_password" name="confirm_password" type="password" required minlength={MIN_PASSWORD_LENGTH} autocomplete="new-password" />
           </div>
-          <button class="btn btn--primary mt-1 justify-self-start" type="submit">Simpan password</button>
+          <button class="adm-act adm-act--call mt-1 w-full sm:w-auto sm:justify-self-start" type="submit"><Icon name="ph:check" /> Simpan password</button>
         </form>
       )}
     </section>

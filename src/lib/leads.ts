@@ -43,6 +43,61 @@ export function detectSource(params: URLSearchParams, referrer: string | null): 
   return { source, gclid: gclid || null, utmSource: utmSource || null, utmMedium: utmMedium || null, utmCampaign: utmCampaign || null };
 }
 
+/**
+ * Digits-only Indonesian MSISDN in 62… form, or null when the number is too
+ * short to dial. Leads are typed by hand into a phone field, so they arrive as
+ * 0812…, +62 812…, 62812…, and occasionally bare 812….
+ */
+export function normalizePhone(raw: string | null | undefined): string | null {
+  const digits = (raw || "").replace(/\D/g, "");
+  if (digits.length < 9) return null;
+  if (digits.startsWith("62")) return digits;
+  if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+  if (digits.startsWith("8")) return `62${digits}`;
+  return digits;
+}
+
+export function waHref(raw: string | null | undefined): string | null {
+  const n = normalizePhone(raw);
+  return n ? `https://wa.me/${n}` : null;
+}
+
+export function telHref(raw: string | null | undefined): string | null {
+  const n = normalizePhone(raw);
+  return n ? `tel:+${n}` : null;
+}
+
+/** Display form: +62 812-3456-7890. Falls back to the raw input when unparseable. */
+export function formatPhone(raw: string | null | undefined): string {
+  const n = normalizePhone(raw);
+  if (!n) return raw || "";
+  const rest = n.slice(2);
+  const tail = rest.slice(3).match(/.{1,4}/g)?.join("-") ?? "";
+  return `+62 ${rest.slice(0, 3)}${tail ? `-${tail}` : ""}`;
+}
+
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+const absoluteTime = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Makassar", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+});
+
+/**
+ * Short, scannable age for a lead — a phone screen has no room for a full
+ * timestamp, and "3 jam lalu" is what actually tells you whether to call now.
+ * Anything older than a day falls back to an absolute date.
+ */
+export function formatLeadTime(value: Date | string, now: Date = new Date()): string {
+  const then = new Date(value);
+  const diff = now.getTime() - then.getTime();
+  if (diff < MINUTE) return "Baru saja";
+  if (diff < HOUR) return `${Math.floor(diff / MINUTE)} menit lalu`;
+  if (diff < DAY) return `${Math.floor(diff / HOUR)} jam lalu`;
+  return absoluteTime.format(then);
+}
+
 export async function insertLead(data: NewLead) {
   const db = getDb();
   const [row] = await db.insert(leads).values(data).returning();

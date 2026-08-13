@@ -1,0 +1,80 @@
+---
+import Base from "../../layouts/Base.astro";
+import { Icon } from "astro-icon/components";
+import { ROLE_LABEL, type UserRole } from "../../lib/users";
+
+interface Props {
+  title: string;
+  active: "leads" | "users" | "akun";
+}
+
+const { title, active } = Astro.props;
+const user = Astro.locals.user;
+const role = (user?.role ?? "client") as UserRole;
+
+// Navigation is the role boundary made visible: clients never see a link they
+// would only be bounced back from by the middleware. Labels stay short so the
+// tab row fits a 320px screen without scrolling.
+const links = [
+  { key: "leads", href: "/admin", label: "Leads", icon: "ph:list-bullets" },
+  ...(role === "admin" ? [{ key: "users", href: "/admin/users", label: "Pengguna", icon: "ph:users-three" }] : []),
+  { key: "akun", href: "/admin/akun", label: "Akun", icon: "ph:user-circle" },
+];
+---
+
+<Base title={title} description="Dashboard Berlin Home Spa">
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <main class="min-h-[100dvh] bg-paper-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <div class="wrap py-4 sm:py-8">
+      <header class="border-b border-line">
+        <div class="flex items-center justify-between gap-3 pb-3">
+          <div class="min-w-0">
+            <a class="font-display text-lg font-medium tracking-tight text-ink sm:text-xl" href="/">Berlin<span class="text-maroon">.</span> Home Spa</a>
+            <p class="truncate text-sm text-faint">
+              {user?.name} · <span class="text-muted">{ROLE_LABEL[role]}</span>
+            </p>
+          </div>
+          <form method="POST" action="/api/admin/logout" class="shrink-0">
+            <button class="adm-act adm-act--sm" type="submit" aria-label="Keluar dari dashboard">
+              <Icon name="ph:sign-out" /> <span class="hidden sm:inline">Keluar</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Scrollable so the tab row can never overflow a narrow phone -->
+        <nav class="-mb-px flex gap-1 overflow-x-auto" aria-label="Menu dashboard">
+          {links.map((l) => (
+            <a
+              href={l.href}
+              aria-current={active === l.key ? "page" : undefined}
+              class:list={[
+                "flex min-h-[2.75rem] shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors",
+                active === l.key
+                  ? "border-maroon font-semibold text-maroon"
+                  : "border-transparent text-muted hover:border-line hover:text-ink",
+              ]}
+            >
+              <Icon name={l.icon} /> {l.label}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <slot />
+    </div>
+  </main>
+
+  <script is:inline>
+    // Filters and the add-user form ship collapsed so a phone screen leads with
+    // content. Where there is room, open them and let CSS drop the trigger.
+    (function () {
+      var wide = window.matchMedia("(min-width: 768px)");
+      function sync() {
+        if (!wide.matches) return;
+        document.querySelectorAll(".adm-fold").forEach(function (d) { d.open = true; });
+      }
+      sync();
+      wide.addEventListener("change", sync);
+    })();
+  </script>
+</Base>

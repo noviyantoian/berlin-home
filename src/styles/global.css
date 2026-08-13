@@ -112,16 +112,67 @@
     border: 1px solid var(--color-line); color: var(--color-muted); background: var(--color-paper);
   }
 
-  /* --- Dashboard admin (behind /admin, never rendered on public pages) --- */
+  /* --- Dashboard admin (behind /admin, never rendered on public pages) ---
+     Mobile-first: the spa owner reads this on a phone. Controls stay at or above
+     the 44px touch target, and inputs stay at 16px so iOS Safari does not zoom
+     the viewport on focus. Desktop tightens things back up at >= 640px. */
   .adm-in {
-    padding: 0.5rem 0.7rem; font: inherit; font-size: 0.9rem; color: var(--color-ink);
-    background: #fff; border: 1.5px solid var(--color-line); border-radius: 9px;
+    width: 100%; min-height: 2.75rem; padding: 0.6rem 0.8rem;
+    font: inherit; font-size: 1rem; color: var(--color-ink);
+    background: #fff; border: 1.5px solid var(--color-line); border-radius: 10px;
   }
-  .adm-in:focus { outline: none; border-color: var(--color-maroon); }
+  .adm-in:focus { outline: none; border-color: var(--color-maroon); box-shadow: 0 0 0 3px rgba(138, 94, 44, 0.15); }
+  @media (min-width: 640px) {
+    .adm-in { min-height: 2.375rem; padding: 0.5rem 0.7rem; font-size: 0.9rem; }
+  }
+
   .adm-card { border: 1px solid var(--color-line); background: var(--color-paper); }
   .adm-alert { padding: 0.75rem 1rem; font-size: 0.9rem; border: 1px solid; }
   .adm-alert--ok { border-color: rgba(6, 95, 70, 0.3); background: #ecfdf5; color: #065f46; }
   .adm-alert--err { border-color: rgba(190, 49, 68, 0.3); background: var(--color-blush); color: var(--color-maroon-ink); }
+
+  /* Thumb-sized action, used for the per-lead contact buttons and row actions */
+  .adm-act {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.45em;
+    min-height: 2.75rem; padding: 0.6rem 1rem; border-radius: 10px;
+    font-weight: 600; font-size: 0.95rem; line-height: 1; cursor: pointer;
+    border: 1.5px solid var(--color-line); background: var(--color-paper); color: var(--color-ink);
+    transition: background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);
+  }
+  .adm-act:active { transform: scale(0.98); }
+  .adm-act [data-icon] { font-size: 1.15em; }
+  .adm-act--wa { background: var(--color-wa-deep); border-color: var(--color-wa-deep); color: #fff; }
+  .adm-act--wa:hover { background: #0f7568; border-color: #0f7568; }
+  .adm-act--call { border-color: var(--color-maroon); color: var(--color-maroon-ink); background: var(--color-blush); }
+  .adm-act--call:hover { background: var(--color-maroon); color: #fff; }
+  .adm-act--danger { border-color: rgba(190, 49, 68, 0.35); color: #9b2333; background: #fff; }
+  .adm-act--danger:hover { background: #9b2333; border-color: #9b2333; color: #fff; }
+  /* Secondary actions stay full-size on phones and only shrink where there is
+     a pointer: a 36px logout is a miss-tap waiting to happen. */
+  .adm-act--sm { font-size: 0.85rem; }
+  @media (min-width: 640px) {
+    .adm-act--sm { min-height: 2.25rem; padding: 0.45rem 0.8rem; }
+  }
+
+  /* Disclosure used for filters and the add-user form: collapsed on phones,
+     always open from 768px up (where there is room to keep it in view). */
+  .adm-fold > summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    min-height: 2.75rem; padding: 0.7rem 1rem; cursor: pointer; list-style: none;
+    font-weight: 600; font-size: 0.95rem;
+  }
+  .adm-fold > summary::-webkit-details-marker { display: none; }
+  .adm-fold > summary .adm-fold__chev { transition: transform .25s var(--ease); }
+  .adm-fold[open] > summary .adm-fold__chev { transform: rotate(180deg); }
+  /* From 768px up a script opens these folds (see AdminShell) and the trigger
+     disappears. Keyed on [open] deliberately: with JS disabled the summary
+     stays visible and clickable instead of leaving unreachable content.
+     Do NOT try to force the body visible with `display: block` — Chrome hides
+     closed <details> content via content-visibility on ::details-content, so
+     the box still measures but never paints. */
+  @media (min-width: 768px) {
+    .adm-fold[open] > summary { display: none; }
+  }
 
   /* Floating WhatsApp affordance */
   .wa-fab {
