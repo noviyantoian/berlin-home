@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { COOKIE_NAME, resolveSession } from "./lib/auth";
+import { isCrmEnabled } from "./lib/crm";
 
 /** Reachable without a session: the login screen, its handler, and sign-out. */
 const PUBLIC_PATHS = new Set(["/admin/login", "/api/admin/login", "/api/admin/logout"]);
@@ -38,8 +39,19 @@ function isSameSitePost(request: Request): boolean {
   return sourceHost === forwarded || sourceHost === host;
 }
 
+/** The whole CRM surface — dashboard pages and their API. */
+const isCrmSurface = (pathname: string) =>
+  pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
+
+  // CRM switched off: the dashboard does not exist. 404 rather than 403 so the
+  // login screen is not advertised while lead capture is disabled.
+  if (isCrmSurface(pathname) && !isCrmEnabled()) {
+    return new Response("Not Found", { status: 404 });
+  }
+
   const deny = (redirectTo: string) =>
     isApi(pathname) ? new Response("Forbidden", { status: 403 }) : context.redirect(redirectTo);
 

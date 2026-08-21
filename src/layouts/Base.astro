@@ -71,9 +71,9 @@ const ogImageAbs = new URL(ogImage, Astro.site);
       }
 
       // Soft micro-event for DIRECT WhatsApp links only. CTAs with [data-order]
-      // open the lead form instead — their real conversion is `generate_lead`
-      // (fired in LeadModal after the lead is stored), so they must NOT also push
-      // a click event here or Google Ads would over-count modal opens.
+      // open the lead form instead and are deliberately excluded, so one visitor
+      // reaching WhatsApp never pushes two events. With the CRM off this is the
+      // only WhatsApp signal the site sends — nothing fires on form submit.
       (window as any).dataLayer = (window as any).dataLayer || [];
       document.querySelectorAll('a[href*="wa.me"]:not([data-order]), a[href*="api.whatsapp.com"]:not([data-order])').forEach((link) => {
         link.addEventListener("click", () => {

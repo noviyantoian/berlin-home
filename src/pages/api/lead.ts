@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { clientIp, detectSource, insertLead } from "../../lib/leads";
+import { isCrmEnabled } from "../../lib/crm";
 import { WA_NUMBER } from "../../data/site";
 
 export const prerender = false;
@@ -34,15 +35,15 @@ export const POST: APIRoute = async ({ request }) => {
   const url = waUrl(text);
 
   // Honeypot: bots fill the hidden field. Let them "succeed" but never store.
-  // `lead:false` => client must NOT fire the generate_lead conversion.
   if (body.website) return json({ ok: true, lead: false, waUrl: url });
+
+  // CRM off (the default): the form is a WhatsApp handoff only — validate, build
+  // the prefilled message, and never touch the database.
+  if (!isCrmEnabled()) return json({ ok: true, lead: false, waUrl: url });
 
   const params = new URLSearchParams(String(body.query || ""));
   const attr = detectSource(params, body.referrer || null);
 
-  // Only a genuinely stored lead counts as a conversion. If the DB write
-  // fails we still send the customer to WhatsApp, but report lead:false so
-  // Google Ads stays in sync with what the admin dashboard actually shows.
   let leadId: number | null = null;
   try {
     const row = await insertLead({

@@ -82,7 +82,6 @@ import { baliAreas } from "../data/site";
     const serviceLabel = form.querySelector<HTMLElement>("[data-service-label]");
     let lastFocused: HTMLElement | null = null;
     let currentService = "";
-    let currentCta = "";
 
     const open = () => {
       lastFocused = document.activeElement as HTMLElement;
@@ -106,7 +105,6 @@ import { baliAreas } from "../data/site";
       el.addEventListener("click", (e) => {
         e.preventDefault();
         currentService = el.getAttribute("data-service") || "";
-        currentCta = el.getAttribute("data-cta") || "";
         open();
       })
     );
@@ -129,35 +127,10 @@ import { baliAreas } from "../data/site";
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error || "Gagal mengirim. Silakan coba lagi.");
 
-        const goToWhatsApp = () => { window.location.href = data.waUrl; };
-
-        // Conversion fires ONLY for a genuinely stored lead (data.lead) — once per
-        // completed form. The unique event_id lets GTM/Google Ads dedupe so one
-        // submit == one conversion, keeping Ads in sync with the admin dashboard.
-        // (Repoint the Ads conversion trigger from `whatsapp_click` to `generate_lead`.)
-        if (data.lead) {
-          const dl = ((window as any).dataLayer = (window as any).dataLayer || []);
-          const eventId =
-            self.crypto && "randomUUID" in self.crypto
-              ? self.crypto.randomUUID()
-              : `lead-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-          let navigated = false;
-          const go = () => { if (!navigated) { navigated = true; goToWhatsApp(); } };
-          dl.push({
-            event: "generate_lead",
-            event_id: eventId,
-            lead_id: data.leadId ?? null,
-            lead_source: data.source ?? null,
-            gclid: data.gclid ?? null,
-            cta_location: currentCta || (currentService ? "service" : "form"),
-            eventCallback: go,
-            eventTimeout: 700,
-          });
-          setTimeout(go, 800); // hard fallback if no GTM tag claims eventCallback
-          return;
-        }
-
-        goToWhatsApp();
+        // No conversion event here: lead capture is off, so the form is a pure
+        // WhatsApp handoff. The direct-link `whatsapp_click` micro-event in
+        // Base.astro is the only signal left for GTM.
+        window.location.href = data.waUrl;
       } catch (err) {
         if (errEl) { errEl.textContent = (err as Error).message; errEl.classList.remove("hidden"); }
         if (btn) { btn.disabled = false; btn.textContent = orig; }
